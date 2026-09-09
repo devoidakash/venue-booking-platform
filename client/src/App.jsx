@@ -1,5 +1,11 @@
+import { Button } from "@/components/ui/button";
+
 function App() {
-  return <div className="text-3xl font-bold text-blue-600 p-4">Venuz</div>;
+  return (
+    <div className="p-4">
+      <Button>Click me</Button>
+    </div>
+  );
 }
 
 export default App;
