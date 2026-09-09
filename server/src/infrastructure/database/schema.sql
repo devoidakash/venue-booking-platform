@@ -261,3 +261,20 @@ CREATE TABLE IF NOT EXISTS bookings (
       )
     )
 );
+
+CREATE TYPE payment_status AS ENUM (
+  'pending',
+  'paid',
+  'failed'
+);
+
+CREATE TABLE IF NOT EXISTS payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  booking_id UUID NOT NULL REFERENCES bookings(id),
+  gateway TEXT NOT NULL,
+  gateway_order_id TEXT NOT NULL UNIQUE,
+  gateway_payment_id TEXT UNIQUE,
+  amount INTEGER NOT NULL CHECK (amount >= 0),
+  status payment_status NOT NULL DEFAULT 'pending',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
