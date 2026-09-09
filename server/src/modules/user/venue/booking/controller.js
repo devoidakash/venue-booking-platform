@@ -40,3 +40,16 @@ export async function createBooking(req, res) {
     data,
   });
 }
+
+export async function createPaymentOrder(req, res) {
+  const data = await service.createPaymentOrder(
+    req.user.id,
+    req.params.bookingId
+  );
+
+  res.status(201).json({
+    success: true,
+    message: 'Payment order created successfully',
+    data,
+  });
+}

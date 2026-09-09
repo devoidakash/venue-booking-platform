@@ -113,3 +113,24 @@ export async function insertTimeSlotBooking(data) {
   );
   return result.rows[0];
 }
+
+export async function getPaymentPrice(userId, bookingId) {
+  const result = await pool.query(
+    `
+  SELECT id, total_amount FROM bookings WHERE id = $1 AND user_id = $2 AND status = 'pending_payment'`,
+    [bookingId, userId]
+  );
+  return result.rows[0];
+}
+
+export async function insertOrderId(data) {
+  const result = await pool.query(
+    `
+  INSERT INTO payments (booking_id, gateway, gateway_order_id, amount
+)
+VALUES (
+  $1, 'razorpay', $2, $3) RETURNING id `,
+    [data.bookingId, data.orderId, data.totalAmount]
+  );
+  return result.rows[0]?.id;
+}

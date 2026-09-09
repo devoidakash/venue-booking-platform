@@ -27,4 +27,10 @@ router.post(
   controller.createBooking
 );
 
+router.post(
+  '/venues/bookings/:bookingId/payment',
+  validateSchema(schema.bookingId, 'params'),
+  controller.createPaymentOrder
+);
+
 export default router;

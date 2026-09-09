@@ -19,4 +19,14 @@ export const ERROR_CONFIG = {
     message: 'Selected time is outside venue operating hours',
     code: 'VENUE_BOOKING_TIME_INVALID',
   },
+  VENUE_BOOKING_NOT_FOUND: {
+    statusCode: 400,
+    message: 'Booking not found. Please book the venue again',
+    code: 'VENUE_BOOKING_NOT_FOUND',
+  },
+  BOOKING_ORDER_CREATION_FAILED: {
+    statusCode: 400,
+    message: 'Unable to create payment order',
+    code: 'BOOKING_ORDER_CREATION_FAILED',
+  },
 };

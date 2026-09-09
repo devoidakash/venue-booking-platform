@@ -43,3 +43,9 @@ export const createBooking = z.discriminatedUnion('booking_type', [
       }
     ),
 ]);
+
+export const bookingId = z.object({
+  venueId: z.string().trim().uuid({
+    message: 'Invalid venue id',
+  }),
+});

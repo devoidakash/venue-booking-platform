@@ -1,3 +1,4 @@
+import razorpay from '../../../../infrastructure/razorpay/razorpay.js';
 import ApiError from '../../../../utils/api.error.js';
 import { getFromCloudinary } from '../../../../utils/cloudinary.storage.js';
 import * as repository from '../booking/repository.js';
@@ -87,5 +88,40 @@ export async function createBooking(userId, venueId, data) {
     }
   } catch (err) {
     throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_FAILED);
+  }
+}
+
+export async function createPaymentOrder(userId, bookingId) {
+  try {
+    const booking = await repository.getPaymentPrice(userId, bookingId);
+
+    if (!booking) {
+      throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
+    }
+
+    const order = await razorpay.orders.create({
+      amount: booking.total_amount * 100,
+      currency: 'INR',
+      receipt: `booking_${bookingId}`,
+    });
+
+    const paymentId = await repository.insertOrderId({
+      bookingId: booking.id,
+      orderId: order.id,
+      totalAmount: booking.total_amount,
+    });
+
+    return {
+      paymentId,
+      orderId: order.id,
+      amount: order.amount,
+      currency: order.currency,
+    };
+  } catch (err) {
+    console.log(err);
+    if (err instanceof ApiError) {
+      throw err;
+    }
+    throw new ApiError(ERROR_CONFIG.BOOKING_ORDER_CREATION_FAILED);
   }
 }
