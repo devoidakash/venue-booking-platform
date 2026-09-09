@@ -1,9 +1,5 @@
 function App() {
-  return (
-    <div>
-      <h1>Venuz</h1>
-    </div>
-  );
+  return <div className="text-3xl font-bold text-blue-600 p-4">Venuz</div>;
 }
 
 export default App;
