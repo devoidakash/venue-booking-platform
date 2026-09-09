@@ -154,8 +154,8 @@ export async function getPaymentForVerification(userId, bookingId) {
   return result.rows[0] ?? null;
 }
 
-export async function markPaymentPaid(paymentId, paymentIdFromGateway) {
-  const result = await pool.query(
+export async function markPaymentPaid(client, paymentId, paymentIdFromGateway) {
+  const result = await client.query(
     `
     UPDATE payments
     SET
@@ -170,8 +170,8 @@ export async function markPaymentPaid(paymentId, paymentIdFromGateway) {
   return result.rows[0];
 }
 
-export async function confirmBooking(bookingId) {
-  const result = await pool.query(
+export async function confirmBooking(client, bookingId) {
+  const result = await client.query(
     `
     UPDATE bookings
     SET status = 'confirmed'

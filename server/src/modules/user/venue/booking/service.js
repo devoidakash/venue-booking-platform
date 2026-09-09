@@ -47,7 +47,7 @@ export async function getVenuePricing(venueId) {
     throw new ApiError(ERROR_CONFIG.VENUE_PRICING_NOT_FOUND);
   }
 
-  return { booking_type, pricing };
+  return { bookingType, pricing };
 }
 
 export async function createBooking(userId, venueId, data) {
@@ -91,6 +91,9 @@ export async function createBooking(userId, venueId, data) {
       });
     }
   } catch (err) {
+    if (err instanceof ApiError) {
+      throw err;
+    }
     throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_FAILED);
   }
 }
@@ -161,8 +164,12 @@ export async function verifyPayment(userId, bookingId, data) {
     }
 
     return withTransaction(pool, async (client) => {
-      await repository.markPaymentPaid(payment.id, data.razorpay_payment_id);
-      return await repository.confirmBooking(bookingId);
+      await repository.markPaymentPaid(
+        client,
+        payment.id,
+        data.razorpay_payment_id
+      );
+      return await repository.confirmBooking(client, bookingId);
     });
   } catch (err) {
     if (err instanceof ApiError) {
