@@ -29,4 +29,15 @@ export const ERROR_CONFIG = {
     message: 'Unable to create payment order',
     code: 'BOOKING_ORDER_CREATION_FAILED',
   },
+  PAYMENT_VERIFICATION_FAILED: {
+    statusCode: 400,
+    message: 'Payment verification failed',
+    code: 'PAYMENT_VERIFICATION_FAILED',
+  },
+
+  PAYMENT_NOT_CAPTURED: {
+    statusCode: 400,
+    message: 'Payment was not captured',
+    code: 'PAYMENT_NOT_CAPTURED',
+  },
 };

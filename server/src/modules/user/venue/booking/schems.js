@@ -49,3 +49,8 @@ export const bookingId = z.object({
     message: 'Invalid venue id',
   }),
 });
+
+export const verifyPayment = z.object({
+  razorpay_payment_id: z.string().trim().min(1),
+  razorpay_signature: z.string().trim().min(1),
+});

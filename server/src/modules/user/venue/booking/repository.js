@@ -134,3 +134,53 @@ VALUES (
   );
   return result.rows[0]?.id;
 }
+
+export async function getPaymentForVerification(userId, bookingId) {
+  const result = await pool.query(
+    `
+    SELECT
+      p.id,
+      p.gateway_order_id
+    FROM payments p
+    JOIN bookings b ON b.id = p.booking_id
+    WHERE p.booking_id = $1
+      AND b.user_id = $2
+      AND b.status = 'pending_payment'
+      AND p.status = 'pending'
+    `,
+    [bookingId, userId]
+  );
+
+  return result.rows[0] ?? null;
+}
+
+export async function markPaymentPaid(paymentId, paymentIdFromGateway) {
+  const result = await pool.query(
+    `
+    UPDATE payments
+    SET
+      gateway_payment_id = $1,
+      status = 'paid'
+    WHERE id = $2
+    RETURNING id
+    `,
+    [paymentIdFromGateway, paymentId]
+  );
+
+  return result.rows[0];
+}
+
+export async function confirmBooking(bookingId) {
+  const result = await pool.query(
+    `
+    UPDATE bookings
+    SET status = 'confirmed'
+    WHERE id = $1
+      AND status = 'pending_payment'
+    RETURNING *
+    `,
+    [bookingId]
+  );
+
+  return result.rows[0];
+}

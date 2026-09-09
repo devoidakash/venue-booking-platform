@@ -1,6 +1,10 @@
+import crypto from 'crypto';
+
+import { pool } from '../../../../infrastructure/database/db.js';
 import razorpay from '../../../../infrastructure/razorpay/razorpay.js';
 import ApiError from '../../../../utils/api.error.js';
 import { getFromCloudinary } from '../../../../utils/cloudinary.storage.js';
+import { withTransaction } from '../../../../utils/transaction.js';
 import * as repository from '../booking/repository.js';
 import { ERROR_CONFIG } from './error.config.js';
 
@@ -123,5 +127,48 @@ export async function createPaymentOrder(userId, bookingId) {
       throw err;
     }
     throw new ApiError(ERROR_CONFIG.BOOKING_ORDER_CREATION_FAILED);
+  }
+}
+
+export async function verifyPayment(userId, bookingId, data) {
+  try {
+    const payment = await repository.getPaymentForVerification(
+      userId,
+      bookingId
+    );
+
+    if (!payment) {
+      throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
+    }
+
+    const body = `${payment.gateway_order_id}|${data.razorpay_payment_id}`;
+
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+
+    if (expectedSignature !== data.razorpay_signature) {
+      throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
+    }
+
+    const verifiedPayment = await razorpay.payments.fetch(
+      data.razorpay_payment_id
+    );
+
+    if (verifiedPayment.status !== 'captured') {
+      throw new ApiError(ERROR_CONFIG.PAYMENT_NOT_CAPTURED);
+    }
+
+    return withTransaction(pool, async (client) => {
+      await repository.markPaymentPaid(payment.id, data.razorpay_payment_id);
+      return await repository.confirmBooking(bookingId);
+    });
+  } catch (err) {
+    if (err instanceof ApiError) {
+      throw err;
+    }
+    console.log(err);
+    throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
   }
 }
