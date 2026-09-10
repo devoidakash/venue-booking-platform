@@ -12,3 +12,13 @@ export async function requestOtp(email) {
 export async function verifyOtp({ email, otp }) {
   return await axiosInstance.post("/auth/otp/verify", { email, otp });
 }
+
+export async function getApplicationStatus() {
+  const res = await axiosInstance.get("/application/status");
+  return res.data;
+}
+
+export async function submitApplication(payload) {
+  const res = await axiosInstance.post("/application", payload);
+  return res.data;
+}
