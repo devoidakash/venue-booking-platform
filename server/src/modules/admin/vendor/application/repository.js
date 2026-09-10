@@ -76,13 +76,18 @@ export async function markVendorAsRejected(client, data) {
   return result.rows[0] ?? null;
 }
 
-export async function getStatusCount(client, status) {
+export async function getStatusCount(client) {
   const result = await client.query(
-    `SELECT COUNT(*) AS count
-     FROM vendor_applications
-     WHERE status = $1`,
-    [status]
+    `SELECT 
+    COUNT(*)  FILTER (WHERE status = 'pending') AS pending,
+    COUNT(*) FILTER (WHERE status = 'approved') AS approved,
+    COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
+    FROM vendor_applications`,
   );
 
-  return Number(result.rows[0].count);
+  return {
+    pending: Number(result.rows[0].pending),
+    approved: Number(result.rows[0].approved),
+    rejected: Number(result.rows[0].rejected),
+  };
 }

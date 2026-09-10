@@ -15,6 +15,6 @@ export async function updateApplication(req, res) {
 }
 
 export async function listApplicationCount(req, res) {
-  const count = await getApplicationsCount(req.params.status);
-  res.status(200).json({ status: true, count });
+  const data = await getApplicationsCount();
+  res.status(200).json({ status: true, data });
 }

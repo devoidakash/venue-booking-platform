@@ -75,6 +75,6 @@ async function handleRejected(reviewerId, applicationId, rejectionReason) {
   return application;
 }
 
-export async function getApplicationsCount(status) {
-  return getStatusCount(pool, status);
+export async function getApplicationsCount() {
+  return getStatusCount(pool);
 }

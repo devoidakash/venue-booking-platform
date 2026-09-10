@@ -1,5 +1,5 @@
 import { vendorApplyLoader } from "@/loaders/vendorApply.loader";
-import HomePage from "@/pages/user/HomePage";
+import HomePage from "@/pages/vendor/HomePage";
 import VendorApplyPage from "@/pages/vendor/VendorApplyPage";
 
 export const vendorRoutes = [

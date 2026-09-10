@@ -23,10 +23,6 @@ router.patch(
   updateApplication
 );
 
-router.get(
-  '/applications/:status',
-  validateSchema(schema.status, 'params'),
-  listApplicationCount
-);
+router.get('/vendor/applications/status-counts', listApplicationCount);
 
 export default router;
