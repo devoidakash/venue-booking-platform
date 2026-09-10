@@ -32,7 +32,10 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    if (code === "ACCESS_TOKEN_MISSING" && !config._retry) {
+    if (
+      (code === "ACCESS_TOKEN_MISSING" || code === "INVALID_TOKEN") &&
+      !config._retry
+    ) {
       config._retry = true;
 
       if (!isRefreshing) {
