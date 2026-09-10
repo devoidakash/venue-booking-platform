@@ -16,6 +16,6 @@ export function generateHash(value) {
 
 export function generateAccessToken(userId) {
   return jwt.sign({ sub: userId }, process.env.ACCESS_SECRET, {
-    expiresIn: '30m',
+    expiresIn: '15m',
   });
 }
