@@ -13,18 +13,18 @@ export async function getApplicationStatus(userId) {
   const application = await findLatestApplicationByUserId(pool, userId);
 
   if (!application) {
-    return { state: 'not_applied' };
+    return { applicationStatus: 'not_applied' };
   }
 
   if (application.status === 'rejected') {
     return {
-      state: 'rejected',
-      reason: application.rejection_reason,
+      applicationStatus: 'rejected',
+      rejectionReason: application.rejection_reason,
     };
   }
 
   return {
-    state: application.status,
+    applicationStatus: application.status,
   };
 }
 
