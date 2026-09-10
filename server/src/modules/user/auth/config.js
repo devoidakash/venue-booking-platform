@@ -12,7 +12,7 @@ export const USER_AUTH_CONFIG = {
 
   ACCESS_COOKIE: 'user_sid',
   REFRESH_COOKIE: 'user_rid',
-  ACCESS_MAX_AGE: 30 * 60 * 1000,
+  ACCESS_MAX_AGE: 15 * 60 * 1000,
   REFRESH_MAX_AGE: 30 * 24 * 60 * 60 * 1000,
 
   get ACCESS_COOKIE_OPTIONS() {
