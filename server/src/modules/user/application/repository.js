@@ -30,13 +30,13 @@ export async function insertVendorApplication(client, data) {
            RETURNING id`,
     values: [
       data.userId,
-      data.pan_name,
+      data.panName,
       data.phone,
       data.address,
       data.pincode,
       data.district,
       data.state,
-      data.pan_number,
+      data.panNumber,
       data.documentKey,
     ],
   });

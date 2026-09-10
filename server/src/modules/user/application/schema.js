@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 const schema = z.object({
-  pan_name: z.string().min(2, 'Full name is required').trim().toUpperCase(),
+  panName: z.string().min(2, 'Full name is required').trim().toUpperCase(),
   phone: z
     .string()
     .trim()
     .regex(/^[6-9]\d{9}$/, 'Invalid 10-digit phone number'),
-  pan_number: z
+  panNumber: z
     .string()
     .trim()
     .regex(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i, 'Invalid PAN format')
