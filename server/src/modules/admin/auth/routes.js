@@ -12,4 +12,5 @@ router.post('/auth/login', validateSchema(schema), handleLogin);
 router.post('/auth/logout', validateAdminSession, handleLogout);
 
 router.get('/auth/me', validateAdminSession, handleSession);
+
 export default router;

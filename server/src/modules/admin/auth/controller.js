@@ -15,7 +15,7 @@ export async function handleLogin(req, res) {
   return res.status(200).json({
     status: true,
     message: 'Login successful',
-    admin,
+    data: admin,
   });
 }
 
@@ -35,7 +35,7 @@ export async function handleLogout(req, res) {
 }
 
 export async function handleSession(req, res) {
-  const admin = await findAdminById(req.admin.id);
+  const data = await findAdminById(req.admin.id);
 
-  return res.status(200).json({ success: true, admin });
+  return res.status(200).json({ success: true, data });
 }
