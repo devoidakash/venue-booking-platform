@@ -50,19 +50,19 @@ const schema = {
     .object({
       status: reviewStatusSchema,
 
-      rejection_reason: rejectionReasonSchema.optional(),
+      rejectionReason: rejectionReasonSchema.optional(),
     })
     .refine(
       (data) => {
         if (data.status === 'rejected') {
-          return !!data.rejection_reason;
+          return !!data.rejectionReason;
         }
-        return !data.rejection_reason;
+        return !data.rejectionReason;
       },
       {
         message:
           'Rejection reason is required when status is rejected and forbidden otherwise',
-        path: ['rejection_reason'],
+        path: ['rejectionReason'],
       }
     ),
 };

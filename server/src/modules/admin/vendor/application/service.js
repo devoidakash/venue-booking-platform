@@ -19,19 +19,19 @@ export async function getApplications(status) {
     applications.map(async (item) => {
       return {
         id: item.id,
-        pan_name: item.pan_name,
+        panName: item.pan_name,
         phone: item.phone,
         address: item.address,
         district: item.district,
         state: item.state,
         pincode: item.pincode,
-        pan_number: item.pan_number,
-        pan_document_url: await getPrivateUrl(item.pan_document_key),
+        panNumber: item.pan_number,
+        panDocumentUrl: await getPrivateUrl(item.pan_document_key),
         status: item.status,
-        submitted_at: item.submitted_at,
-        reviewed_at: item.reviewed_at,
-        reviewed_by: item.reviewed_by,
-        rejection_reason: item.rejection_reason,
+        submittedAt: item.submitted_at,
+        reviewedAt: item.reviewed_at,
+        reviewedBy: item.reviewed_by,
+        rejectionReason: item.rejection_reason,
       };
     })
   );
