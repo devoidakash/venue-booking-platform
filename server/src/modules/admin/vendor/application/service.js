@@ -23,7 +23,6 @@ export async function getApplications(status) {
         status: item.status,
         submittedAt: item.submitted_at,
         reviewedAt: item.reviewed_at,
-        reviewedBy: item.reviewed_by,
         rejectionReason: item.rejection_reason,
       };
     })
