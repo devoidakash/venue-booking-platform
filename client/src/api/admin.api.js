@@ -12,16 +12,16 @@ export async function adminLogout() {
   return adminAxiosInstance.post("/admin/auth/logout");
 }
 
-export async function getVendorApplicationCount() {
+export async function getVendorApplicationsCount() {
   return adminAxiosInstance.get("/admin/vendor/applications/counts");
 }
 
-export async function getVenueApplicationCount() {
+export async function getVenueApplicationsCount() {
   return adminAxiosInstance.get("/admin/vendor/applications/counts");
 }
 
-export async function getVendorApplication(payload) {
-  return adminAxiosInstance.get("/admin/vendor/applications", payload);
+export async function getVendorApplications(status) {
+  return adminAxiosInstance.get(`/admin/vendor/applications?status=${status}`);
 }
 
 export async function reviewVendorApplication(applicationId, payload) {

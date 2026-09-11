@@ -11,22 +11,22 @@ const adminNavigationLinks = [
     icon: Home,
   },
   {
-    to: "/admin/application?status=pending",
-    label: "Vendor KYC",
+    to: "/admin",
+    label: "Vendor ",
     icon: UserPlus,
     children: [
       {
-        to: "/admin/application?status=pending",
+        to: "/admin/vendor/applications/pending",
         label: "Pending",
         icon: Clock3,
       },
       {
-        to: "/admin/application?status=approved",
+        to: "/admin/vendor/applications/approved",
         label: "Approved",
         icon: CircleCheck,
       },
       {
-        to: "/admin/application?status=rejected",
+        to: "/admin/vendor/applications/rejected",
         label: "Rejected",
         icon: CircleX,
       },

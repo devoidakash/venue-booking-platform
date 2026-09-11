@@ -34,7 +34,7 @@ export async function updateApplication(reviewerId, applicationId, data) {
     return handleApproved(reviewerId, applicationId);
   }
 
-  return handleRejected(reviewerId, applicationId, data.rejection_reason);
+  return handleRejected(reviewerId, applicationId, data.rejectionReason);
 }
 
 async function handleApproved(reviewerId, applicationId) {

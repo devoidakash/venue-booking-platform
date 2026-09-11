@@ -6,8 +6,14 @@ export async function getApplications(req, res) {
 }
 
 export async function updateApplication(req, res) {
-  await service.updateApplication(req.admin.id, req.params.id, req.body);
-  res.status(201).json({ status: true, message: 'Status updated' });
+  await service.updateApplication(
+    req.admin.id,
+    req.params.applicationId,
+    req.body
+  );
+  res
+    .status(201)
+    .json({ status: true, message: 'Vendor application status updated' });
 }
 
 export async function getApplicationsCount(req, res) {

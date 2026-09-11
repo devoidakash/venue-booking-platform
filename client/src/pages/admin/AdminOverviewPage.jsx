@@ -1,6 +1,6 @@
 import {
-  getVendorApplicationCount,
-  getVenueApplicationCount,
+  getVendorApplicationsCount,
+  getVenueApplicationsCount,
 } from "@/api/admin.api";
 import ApplicationStatusOverview from "@/components/admin/ApplicationStatusOverview";
 
@@ -10,13 +10,13 @@ export default function AdminOverviewPage() {
       <ApplicationStatusOverview
         title="Vendor Applications"
         entityLabel="vendor applications"
-        fetchCounts={getVendorApplicationCount}
+        fetchCounts={getVendorApplicationsCount}
         baseRoute="/admin/vendor/applications"
       />
       <ApplicationStatusOverview
         title="Venue Applications"
         entityLabel="venue applications"
-        fetchCounts={getVenueApplicationCount}
+        fetchCounts={getVenueApplicationsCount}
         baseRoute="/admin/venue/applications"
       />
     </div>
