@@ -1,11 +1,7 @@
 import express from 'express';
 
 import validateSchema from '../../../../middleware/schema.validation.js';
-import {
-  listApplicationCount,
-  listApplications,
-  updateApplication,
-} from './controller.js';
+import * as controller from './controller.js';
 import schema from './schema.js';
 
 const router = express.Router();
@@ -13,16 +9,16 @@ const router = express.Router();
 router.get(
   '/vendor/applications',
   validateSchema(schema.status, 'query'),
-  listApplications
+  controller.getApplications
 );
 
 router.patch(
   '/vendor/applications/:applicationId',
   validateSchema(schema.applicationId, 'params'),
   validateSchema(schema.review, 'body'),
-  updateApplication
+  controller.updateApplication
 );
 
-router.get('/vendor/applications/counts', listApplicationCount);
+router.get('/vendor/applications/counts', controller.getApplicationsCount);
 
 export default router;

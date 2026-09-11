@@ -3,17 +3,10 @@ import ApiError from '../../../../utils/api.error.js';
 import { getPrivateUrl } from '../../../../utils/r2.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
 import { APPLICATION_ERROR_CONFIG } from './error.config.js';
-import {
-  createVendorProfile,
-  findApplicationsByStatus,
-  getStatusCount,
-  markUserAsVendor,
-  markVendorAsApproved,
-  markVendorAsRejected,
-} from './repository.js';
+import * as repository from './repository.js';
 
 export async function getApplications(status) {
-  const applications = await findApplicationsByStatus(pool, status);
+  const applications = await repository.findApplicationsByStatus(pool, status);
 
   return Promise.all(
     applications.map(async (item) => {
@@ -37,7 +30,7 @@ export async function getApplications(status) {
   );
 }
 
-export async function reviewApplication(reviewerId, applicationId, data) {
+export async function updateApplication(reviewerId, applicationId, data) {
   if (data.status === 'approved') {
     return handleApproved(reviewerId, applicationId);
   }
@@ -47,7 +40,7 @@ export async function reviewApplication(reviewerId, applicationId, data) {
 
 async function handleApproved(reviewerId, applicationId) {
   await withTransaction(pool, async (client) => {
-    const application = await markVendorAsApproved(client, {
+    const application = await repository.markVendorAsApproved(client, {
       applicationId,
       status: 'approved',
       reviewedBy: reviewerId,
@@ -57,13 +50,13 @@ async function handleApproved(reviewerId, applicationId) {
       throw new ApiError(APPLICATION_ERROR_CONFIG.APPLICATION_NOT_PENDING);
     }
 
-    await createVendorProfile(client, application);
-    await markUserAsVendor(client, application.user_id);
+    await repository.createVendorProfile(client, application);
+    await repository.markUserAsVendor(client, application.user_id);
   });
 }
 
 async function handleRejected(reviewerId, applicationId, rejectionReason) {
-  const application = await markVendorAsRejected(pool, {
+  const application = await repository.markVendorAsRejected(pool, {
     applicationId,
     rejectionReason,
     reviewerId,
@@ -76,5 +69,5 @@ async function handleRejected(reviewerId, applicationId, rejectionReason) {
 }
 
 export async function getApplicationsCount() {
-  return getStatusCount(pool);
+  return repository.getStatusCount(pool);
 }
