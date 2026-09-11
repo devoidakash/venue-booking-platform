@@ -3,15 +3,10 @@ import ApiError from '../../../../utils/api.error.js';
 import { getPrivateUrl } from '../../../../utils/r2.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
 import { APPLICATION_ERROR_CONFIG } from './error.config.js';
-import {
-  createVenue,
-  fetchApplications,
-  markVenueAsApproved,
-  markVenueAsRejected,
-} from './repository.js';
+import * as repository from './repository.js';
 
 export async function getApplications(status) {
-  const applications = await fetchApplications(status);
+  const applications = await repository.fetchApplications(status);
   return Promise.all(
     applications.map(async (item) => {
       return {
@@ -40,7 +35,11 @@ export async function getApplications(status) {
 
 export async function updateApplication(reviewerId, applicationId, data) {
   if (data.status === 'rejected') {
-    const result = await markVenueAsRejected(reviewerId, applicationId, data);
+    const result = await repository.markVenueAsRejected(
+      reviewerId,
+      applicationId,
+      data
+    );
 
     if (!result) {
       throw new ApiError(APPLICATION_ERROR_CONFIG.APPLICATION_NOT_PENDING);
@@ -48,10 +47,18 @@ export async function updateApplication(reviewerId, applicationId, data) {
     return result;
   }
   return withTransaction(pool, async (client) => {
-    const result = await markVenueAsApproved(client, reviewerId, applicationId);
+    const result = await repository.markVenueAsApproved(
+      client,
+      reviewerId,
+      applicationId
+    );
     if (!result) {
       throw new ApiError(APPLICATION_ERROR_CONFIG.APPLICATION_NOT_PENDING);
     }
-    return createVenue(client, result);
+    return repository.createVenue(client, result);
   });
+}
+
+export async function getApplicationsCounts() {
+  return repository.fetchApplicationsCounts();
 }

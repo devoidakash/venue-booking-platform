@@ -16,6 +16,10 @@ export async function getVendorApplicationCount() {
   return adminAxiosInstance.get("/admin/vendor/applications/counts");
 }
 
+export async function getVenueApplicationCount() {
+  return adminAxiosInstance.get("/admin/vendor/applications/counts");
+}
+
 export async function getVendorApplication(payload) {
   return adminAxiosInstance.get("/admin/vendor/applications", payload);
 }

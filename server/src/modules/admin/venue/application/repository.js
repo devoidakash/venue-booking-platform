@@ -1,3 +1,5 @@
+import { rejects } from 'node:assert';
+
 import { pool } from '../../../../infrastructure/database/db.js';
 
 export async function fetchApplications(status) {
@@ -48,4 +50,18 @@ export async function createVenue(client, data) {
     ]
   );
   return result.rows[0];
+}
+
+export async function fetchApplicationsCounts() {
+  const result = await pool.query(`
+  SELECT
+  COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+  COUNT(*) FILTER (WHERE status = 'approved') AS approved,
+  COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
+  FROM venue_applications`);
+  return {
+    pending: Number(result.rows[0].pending),
+    approved: Number(result.rows[0].approved),
+    rejected: Number(result.rows[0].rejected),
+  };
 }
