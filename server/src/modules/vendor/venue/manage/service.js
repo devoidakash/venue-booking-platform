@@ -2,11 +2,30 @@ import { pool } from '../../../../infrastructure/database/db.js';
 import ApiError from '../../../../utils/api.error.js';
 import {
   deleteFromCloudinary,
+  getFromCloudinary,
   uploadToCloudinary,
 } from '../../../../utils/cloudinary.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
 import ERROR_CONFIG from './error.config.js';
 import * as repository from './repository.js';
+
+export async function getVenues(vendorId) {
+  const venues = await repository.featchVenues(vendorId);
+  return Promise.all(
+    venues.map(async (venue) => {
+      const coverImageId = `venues/${vendorId}/${venue.id}/cover_image`;
+      return {
+        id: venue.id,
+        name: venue.name,
+        category: venue.category,
+        district: venue.district,
+        state: venue.state,
+        coverImageUrl: (await getFromCloudinary([coverImageId]))[0],
+        status: venue.status,
+      };
+    })
+  );
+}
 
 export async function getVenueDetails(venueId, vendorId) {
   const venue = await repository.fetchVenue(venueId, vendorId);

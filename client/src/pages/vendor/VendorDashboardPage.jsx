@@ -1,5 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { Home, User } from "lucide-react";
+import { Home, User, Store } from "lucide-react";
 import { useLoaderData } from "react-router-dom";
 
 import Layout from "../../components/dashboard/Layout";
@@ -15,6 +15,11 @@ const vendorNavigationLinks = [
     to: "/vendor/profile",
     label: "Profile",
     icon: User,
+  },
+  {
+    to: "/vendor/venues",
+    label: "Venues",
+    icon: Store,
   },
 ];
 

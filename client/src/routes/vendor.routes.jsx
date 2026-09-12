@@ -4,6 +4,7 @@ import VendorApplyPage from "@/pages/vendor/VendorApplyPage";
 import VendorDashboardPage from "@/pages/vendor/VendorDashboardPage";
 import VendorOveriviewPage from "@/pages/vendor/VendorOverviewPage";
 import VendorProfilePage from "@/pages/vendor/VendorProfilePage";
+import VendorVenuesPage from "@/pages/vendor/VendorVeunusPage";
 
 export const vendorRoutes = [
   {
@@ -23,6 +24,10 @@ export const vendorRoutes = [
       {
         path: "profile",
         element: <VendorProfilePage />,
+      },
+      {
+        path: "venues",
+        element: <VendorVenuesPage />,
       },
     ],
   },

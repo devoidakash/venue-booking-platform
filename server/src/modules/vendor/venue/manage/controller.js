@@ -1,5 +1,13 @@
 import * as service from './service.js';
 
+export async function getVenues(req, res) {
+  const data = await service.getVenues(req.vendor.id);
+  res.status(200).json({
+    success: true,
+    data,
+  });
+}
+
 export async function getVenueDetails(req, res) {
   const data = await service.getVenueDetails(req.vendor.id, req.params.venueId);
   res.status(200).json({

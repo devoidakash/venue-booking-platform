@@ -12,6 +12,8 @@ import schema from './schema.js';
 
 const router = express.Router();
 
+router.get('/venues', controller.getVenues);
+
 router.get(
   '/venues/:venueId',
   validateSchema(schema.venueId, 'params'),

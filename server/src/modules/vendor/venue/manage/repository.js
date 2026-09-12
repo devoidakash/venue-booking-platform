@@ -1,5 +1,15 @@
 import { pool } from '../../../../infrastructure/database/db.js';
 
+export async function featchVenues(vendorId) {
+  const result = await pool.query(
+    `
+  SELECT id, name, category, district, state, status 
+  FROM venues WHERE vendor_id = $1`,
+    [vendorId]
+  );
+  return result.rows;
+}
+
 export async function fetchVenue(vendorId, venueId) {
   const result = await pool.query(
     `SELECT id, name, description, category, address, district, state, pincode, geo_loc, has_cover_image, images, booking_type, opening_time, closing_time, status, suspension_reason, created_at FROM venues WHERE id = $1 AND vendor_id = $2`,
