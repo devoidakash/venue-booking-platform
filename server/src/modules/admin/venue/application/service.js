@@ -20,10 +20,8 @@ export async function getApplications(status) {
         state: item.state,
         pincode: item.pincode,
         geo_loc: item.geo_loc,
-        images: await Promise.all(
-          item.images.map(async (image) => getPrivateUrl(image))
-        ),
-        proof_document_url: await getPrivateUrl(item.proof_document_key),
+        images: await getPrivateUrl(item.images),
+        proof_document_url: (await getPrivateUrl(item.proof_document_key))[0],
         rejection_reason: item.rejection_reason,
         submitted_at: item.submitted_at,
         reviewed_at: item.reviewed_at,

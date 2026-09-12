@@ -20,7 +20,7 @@ export async function fetchVendorProfile(user) {
     isSuspended: result.is_suspended,
     suspensionReason: result.suspension_reason,
     approvedAt: result.approved_at,
-    panDocumentUrl: await getPrivateUrl(result.pan_document_key),
+    panDocumentUrl: (await getPrivateUrl(result.pan_document_key))[0],
   };
 
   return { ...user, ...data };

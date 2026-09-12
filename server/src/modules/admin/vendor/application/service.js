@@ -19,7 +19,7 @@ export async function getApplications(status) {
         state: item.state,
         pincode: item.pincode,
         panNumber: item.pan_number,
-        panDocumentUrl: await getPrivateUrl(item.pan_document_key),
+        panDocumentUrl: (await getPrivateUrl([item.pan_document_key]))[0],
         status: item.status,
         submittedAt: item.submitted_at,
         reviewedAt: item.reviewed_at,
