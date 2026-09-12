@@ -25,7 +25,8 @@ export async function insertIntoVenueApplications(client, data) {
         pincode,
         geo_loc,
         images,
-        proof_document_key
+        proof_document_key,
+        cover_image_key
       )
       VALUES (
         $1,
@@ -39,7 +40,8 @@ export async function insertIntoVenueApplications(client, data) {
         $9,
         ST_SetSRID(ST_MakePoint($11, $10), 4326)::geography,
         $12,
-        $13
+        $13,
+        $14
       )
       RETURNING id
     `,
@@ -57,6 +59,7 @@ export async function insertIntoVenueApplications(client, data) {
       data.longitude,
       data.images,
       data.proofDocumentKey,
+      data.coverImageKey,
     ]
   );
 

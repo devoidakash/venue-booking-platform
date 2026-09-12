@@ -73,6 +73,7 @@ export default function VendorVenueApplicationPage() {
   });
 
   const [venueImages, setVenueImages] = useState([]);
+  const [coverImage, setCoverImage] = useState(null);
   const [proofDocument, setProofDocument] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -102,6 +103,16 @@ export default function VendorVenueApplicationPage() {
     setVenueImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file && ["image/jpeg", "image/png"].includes(file.type)) {
+      setCoverImage(file);
+      setError(null);
+    } else {
+      setError("Cover image must be a valid JPEG or PNG file.");
+    }
+  };
+
   const handleProofChange = (e) => {
     const file = e.target.files[0];
     if (file && ["image/jpeg", "image/png"].includes(file.type)) {
@@ -126,6 +137,11 @@ export default function VendorVenueApplicationPage() {
       return;
     }
 
+    if (!coverImage) {
+      setError("Please upload 1 venue cover image.");
+      return;
+    }
+
     if (!formData.category) {
       setError("Please select a venue category.");
       return;
@@ -144,6 +160,7 @@ export default function VendorVenueApplicationPage() {
       });
 
       payload.append("proofDocument", proofDocument);
+      payload.append("coverImage", coverImage);
 
       await submitVenueApplication(payload);
       setSuccess(true);
@@ -409,6 +426,32 @@ export default function VendorVenueApplicationPage() {
                 />
               </label>
             )}
+          </div>
+
+          <div className="mt-6 border-t border-slate-100 pt-5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Cover Image (Only verification only)
+            </label>
+            <label className="mt-2 flex h-28 w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50/20">
+              {coverImage ? (
+                <img
+                  src={URL.createObjectURL(coverImage)}
+                  alt="Cover preview"
+                  className="h-20 w-28 rounded-lg object-cover"
+                />
+              ) : (
+                <ImageIcon className="h-7 w-7 text-slate-400" />
+              )}
+              <span className="text-xs font-semibold text-slate-700">
+                {coverImage ? "Change Cover Image" : "Select Cover Image"}
+              </span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png"
+                onChange={handleCoverImageChange}
+                className="hidden"
+              />
+            </label>
           </div>
         </div>
 

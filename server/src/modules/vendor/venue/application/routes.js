@@ -10,9 +10,10 @@ const router = express.Router();
 
 router.post(
   '/venue/application',
-  upload(6, 10).fields([
+  upload(7, 10).fields([
     { name: 'venueImages', maxCount: 5 },
     { name: 'proofDocument', maxCount: 1 },
+    { name: 'coverImage', maxCount: 1 },
   ]),
   validateSchema(schema),
   validateFileCount,

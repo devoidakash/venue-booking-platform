@@ -9,6 +9,11 @@ const ERROR_CONFIG = {
     message: 'Please upload the venue proof document',
     code: 'PROOF_DOCUMENT_REQUIRED',
   },
+  COVER_IMAGE_REQUIRED: {
+    statusCode: 400,
+    message: 'Please upload a venue cover image',
+    code: 'COVER_IMAGE_REQUIRED',
+  },
   NO_EXISTING_VENUE_FOUND: {
     statusCode: 400,
     message: 'No existing venue found',

@@ -10,7 +10,9 @@ import { findVenueGroupId, insertIntoVenueApplications } from './repository.js';
 
 export async function processSubmission(vendorId, data, files) {
   const proofDocument = files.proofDocument[0];
+  const coverImage = files.coverImage[0];
   const proofDocumentKey = `venue-application/${vendorId}/${Date.now()}-venueProof${path.extname(proofDocument.originalname)}`;
+  const coverImageKey = `venue-application/${vendorId}/${Date.now()}-venueCoverImage${path.extname(coverImage.originalname)}`;
   const venueImagesKey = files.venueImages.map((image, index) => {
     return `venue-application/${vendorId}/${Date.now()}-${index}-venueImages${path.extname(image.originalname)}`;
   });
@@ -23,6 +25,9 @@ export async function processSubmission(vendorId, data, files) {
       proofDocument.mimetype
     );
     uploadedKeys.push(proofDocumentKey);
+
+    await uploadToR2(coverImage.buffer, coverImageKey, coverImage.mimetype);
+    uploadedKeys.push(coverImageKey);
 
     for (const [index, image] of files.venueImages.entries()) {
       await uploadToR2(image.buffer, venueImagesKey[index], image.mimetype);
@@ -48,7 +53,8 @@ export async function processSubmission(vendorId, data, files) {
         vendorId,
         venueGroupId,
         images: venueImagesKey,
-        proofDocumentKey: proofDocumentKey,
+        proofDocumentKey,
+        coverImageKey,
       });
     });
   } catch (err) {
