@@ -11,7 +11,7 @@ export async function vendorApplyLoader({ request }) {
   }
 
   if (user.role === "vendor") {
-    return redirect("/vendor/dashboard");
+    return redirect("/vendor/overview");
   }
 
   const { applicationStatus, rejectionReason } = await getApplicationStatus();
