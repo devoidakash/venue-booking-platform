@@ -1,5 +1,12 @@
 import { Outlet, useNavigate } from "react-router-dom";
-import { CircleCheck, CircleX, Clock3, Home, UserPlus } from "lucide-react";
+import {
+  Building2,
+  CircleCheck,
+  CircleX,
+  Clock3,
+  Home,
+  UserPlus,
+} from "lucide-react";
 
 import Layout from "../../components/dashboard/Layout";
 import { adminLogout } from "@/api/admin.api";
@@ -27,6 +34,28 @@ const adminNavigationLinks = [
       },
       {
         to: "/admin/vendor/applications/rejected",
+        label: "Rejected",
+        icon: CircleX,
+      },
+    ],
+  },
+  {
+    to: "/admin",
+    label: "Venue",
+    icon: Building2,
+    children: [
+      {
+        to: "/admin/venue/applications/pending",
+        label: "Pending",
+        icon: Clock3,
+      },
+      {
+        to: "/admin/venue/applications/approved",
+        label: "Approved",
+        icon: CircleCheck,
+      },
+      {
+        to: "/admin/venue/applications/rejected",
         label: "Rejected",
         icon: CircleX,
       },

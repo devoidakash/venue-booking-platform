@@ -5,6 +5,37 @@ import { withTransaction } from '../../../../utils/transaction.js';
 import { APPLICATION_ERROR_CONFIG } from './error.config.js';
 import * as repository from './repository.js';
 
+export async function getApplications(status) {
+  const applications = await repository.fetchApplications(status);
+  return Promise.all(
+    applications.map(async (application) => {
+      const [coverImage] = await getPrivateUrl([application.cover_image_key]);
+
+      return {
+        id: application.id,
+        venueGroupId: application.venue_group_id,
+        name: application.name,
+        category: application.category,
+        coverImage,
+        district: application.district,
+        state: application.state,
+        status: application.status,
+        submittedAt: application.submitted_at,
+        reviewedAt: application.reviewed_at,
+        rejectionReason: application.rejection_reason,
+        vendor: {
+          id: application.vendor_id,
+          name: application.vendor_name,
+        },
+        reviewedBy: {
+          id: application.reviewer_id,
+          email: application.reviewer_email,
+        },
+      };
+    })
+  );
+}
+
 export async function getApplication(applicationId) {
   const applications = await repository.fetchApplication(applicationId);
   return Promise.all(

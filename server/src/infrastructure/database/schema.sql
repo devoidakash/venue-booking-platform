@@ -109,6 +109,7 @@ CREATE TABLE IF NOT EXISTS venue_applications (
   geo_loc GEOGRAPHY(Point, 4326) NOT NULL,
   images text[] NOT NULL CHECK (array_length(images, 1) = 5),
   proof_document_key TEXT NOT NULL,
+  cover_image_key TEXT not null,
   status application_status NOT NULL DEFAULT 'pending',
   rejection_reason TEXT,
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT now(),

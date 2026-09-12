@@ -1,16 +1,36 @@
-import { rejects } from 'node:assert';
-
 import { pool } from '../../../../infrastructure/database/db.js';
+
+export async function fetchApplications(status) {
+  const statusFilter = status ?? null;
+  const result = await pool.query(
+    `
+  SELECT * FROM (
+  SELECT DISTINCT ON (va.venue_group_id)
+    va.id, va.venue_group_id, va.name, va.category,
+    va.district, va.state, va.status, va.cover_image_key, va.submitted_at, va.reviewed_at, va.rejection_reason,
+    vp.id AS vendor_id, vp.vendor_name,
+    a.id AS reviewer_id, a.email AS reviewer_email
+  FROM venue_applications va
+  JOIN vendor_profiles vp ON vp.id = va.vendor_id
+  LEFT JOIN admins a ON a.id = va.reviewed_by
+  ORDER BY va.venue_group_id, va.submitted_at DESC
+  ) AS latest_per_group
+  WHERE ($1::application_status IS NULL OR status = $1::application_status)
+  ORDER BY submitted_at ASC`,
+    [statusFilter]
+  );
+  return result.rows;
+}
 
 export async function fetchApplication(applicationId, status) {
   const result = await pool.query(
     `
   SELECT id, vendor_id, name, venue_details, category, address, district, state, pincode, geo_loc, images, proof_document_key, rejection_reason, submitted_at, reviewed_at
   FROM venue_applications
-  WHERE applicationId = $1 AND status = $2
+  WHERE id = $1
   ORDER BY submitted_at DESC
   LIMIT 1`,
-    [applicationId, status]
+    [applicationId]
   );
   return result.rows;
 }

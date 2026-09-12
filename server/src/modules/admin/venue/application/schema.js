@@ -14,28 +14,13 @@ const REJECTION_REASONS = [
   'suspicious_or_fraudulent_information',
 ];
 
-const rejectionReason = z.enum(REJECTION_REASONS, {
-  message: 'Invalid rejection reason',
-});
-
-const applicationStatus = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .pipe(z.enum(['pending', 'approved', 'rejected']));
-
-const reviewStatus = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .pipe(
-    z.enum(['approved', 'rejected'], {
-      message: 'Status must be either approved or rejected',
-    })
-  );
-
 export const status = z.object({
-  status: applicationStatus,
+  status: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.enum(['pending', 'approved', 'rejected']))
+    .optional(),
 });
 
 export const applicationId = z.object({
@@ -46,9 +31,21 @@ export const applicationId = z.object({
 
 export const review = z
   .object({
-    status: reviewStatus,
+    status: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .pipe(
+        z.enum(['approved', 'rejected'], {
+          message: 'Status must be either approved or rejected',
+        })
+      ),
 
-    rejection_reason: rejectionReason.optional(),
+    rejection_reason: z
+      .enum(REJECTION_REASONS, {
+        message: 'Invalid rejection reason',
+      })
+      .optional(),
   })
   .refine(
     (data) => {

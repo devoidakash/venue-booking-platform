@@ -7,9 +7,14 @@ import * as schema from './schema.js';
 const router = express.Router();
 
 router.get(
+  '/venue/applications',
+  validateSchema(schema.status, 'query'),
+  controller.getApplications
+);
+
+router.get(
   '/venue/applications/:applicationId',
   validateSchema(schema.applicationId, 'params'),
-  validateSchema(schema.status, 'body'),
   controller.getApplication
 );
 

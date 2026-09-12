@@ -79,6 +79,7 @@ export default function VendorVenueApplicationPage() {
   });
 
   const [venueImages, setVenueImages] = useState([]);
+  const [coverImage, setCoverImage] = useState(null);
   const [proofDocument, setProofDocument] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -108,6 +109,16 @@ export default function VendorVenueApplicationPage() {
     setVenueImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file && ["image/jpeg", "image/png"].includes(file.type)) {
+      setCoverImage(file);
+      setError(null);
+    } else {
+      setError("Cover image must be a valid JPEG or PNG file.");
+    }
+  };
+
   const handleProofChange = (e) => {
     const file = e.target.files[0];
     if (file && ["image/jpeg", "image/png"].includes(file.type)) {
@@ -132,6 +143,11 @@ export default function VendorVenueApplicationPage() {
       return;
     }
 
+    if (!coverImage) {
+      setError("Please upload 1 venue cover image.");
+      return;
+    }
+
     if (!formData.category) {
       setError("Please select a venue category.");
       return;
@@ -150,6 +166,7 @@ export default function VendorVenueApplicationPage() {
       });
 
       payload.append("proofDocument", proofDocument);
+      payload.append("coverImage", coverImage);
 
       await submitVenueApplication(payload);
       setSuccess(true);
@@ -364,7 +381,91 @@ export default function VendorVenueApplicationPage() {
           </div>
         </div>
 
-        {/* Section 3: Media Uploads */}
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          {/* Section 3: Media Uploads */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+            <div className="mt-6 border-t border-slate-100 pt-5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Cover Image (Required)
+              </label>
+              <label className="mt-2 flex h-28 w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50/20">
+                {coverImage ? (
+                  <img
+                    src={URL.createObjectURL(coverImage)}
+                    alt="Cover preview"
+                    className="h-20 w-28 rounded-lg object-cover"
+                  />
+                ) : (
+                  <Upload className="h-7 w-7 text-slate-400" />
+                )}
+                <span className="text-xs font-semibold text-slate-700">
+                  {coverImage ? "Change Cover Image" : "Select Cover Image"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={handleCoverImageChange}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          </div>
+
+          {/* Section 4: Operational Document */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
+            <div className="mb-5 flex items-center gap-2 border-b border-slate-100 pb-4">
+              <ShieldCheck className="h-5 w-5 text-indigo-600" />
+              <h2 className="text-base font-bold text-slate-900">
+                Ownership / Registration Proof (1 Required)
+              </h2>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <label className="flex h-36 w-full sm:w-64 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/20">
+                <FileText className="h-7 w-7 text-slate-400" />
+                <span className="mt-2 text-xs font-semibold text-slate-700">
+                  {proofDocument ? "Change Document" : "Select Proof File"}
+                </span>
+                <span className="text-[10px] text-slate-400">JPEG, PNG</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  onChange={handleProofChange}
+                  className="hidden"
+                />
+              </label>
+
+              {proofDocument && (
+                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                  <div className="h-12 w-12 overflow-hidden rounded-lg bg-slate-200">
+                    <img
+                      src={URL.createObjectURL(proofDocument)}
+                      alt="Proof Preview"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <div className="text-left">
+                    <p className="max-w-200px truncate text-xs font-semibold text-slate-800">
+                      {proofDocument.name}
+                    </p>
+                    <p className="text-[10px] text-slate-400">
+                      {(proofDocument.size / 1024).toFixed(1)} KB
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setProofDocument(null)}
+                    className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Section 5: Venue Gallery */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
           <div className="mb-5 flex items-center justify-between border-b border-slate-100 pb-4">
             <div className="flex items-center gap-2">
@@ -386,7 +487,7 @@ export default function VendorVenueApplicationPage() {
               >
                 <img
                   src={URL.createObjectURL(file)}
-                  alt="preview"
+                  alt={`Venue gallery ${idx + 1}`}
                   className="h-full w-full object-cover"
                 />
                 <button
@@ -414,59 +515,6 @@ export default function VendorVenueApplicationPage() {
                   className="hidden"
                 />
               </label>
-            )}
-          </div>
-        </div>
-
-        {/* Section 4: Operational Document */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-          <div className="mb-5 flex items-center gap-2 border-b border-slate-100 pb-4">
-            <ShieldCheck className="h-5 w-5 text-indigo-600" />
-            <h2 className="text-base font-bold text-slate-900">
-              Ownership / Registration Proof (1 Required)
-            </h2>
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <label className="flex h-36 w-full sm:w-64 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/20">
-              <FileText className="h-7 w-7 text-slate-400" />
-              <span className="mt-2 text-xs font-semibold text-slate-700">
-                {proofDocument ? "Change Document" : "Select Proof File"}
-              </span>
-              <span className="text-[10px] text-slate-400">JPEG, PNG</span>
-              <input
-                type="file"
-                accept="image/jpeg,image/png"
-                onChange={handleProofChange}
-                className="hidden"
-              />
-            </label>
-
-            {proofDocument && (
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                <div className="h-12 w-12 overflow-hidden rounded-lg bg-slate-200">
-                  <img
-                    src={URL.createObjectURL(proofDocument)}
-                    alt="Proof Preview"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <div className="text-left">
-                  <p className="max-w-200px truncate text-xs font-semibold text-slate-800">
-                    {proofDocument.name}
-                  </p>
-                  <p className="text-[10px] text-slate-400">
-                    {(proofDocument.size / 1024).toFixed(1)} KB
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setProofDocument(null)}
-                  className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
             )}
           </div>
         </div>

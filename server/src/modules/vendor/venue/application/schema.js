@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-const ALLOWED_CATEGORY = ['waterpark', 'amusement_park', 'turf', 'playzone'];
+const ALLOWED_CATEGORY = [
+  'waterpark',
+  'amusement_park',
+  'playzone',
+  'racing_zone',
+  'gaming_zone',
+];
 const ALLOWED_STATES = [
   'Andhra Pradesh',
   'Chhattisgarh',

@@ -1,5 +1,10 @@
 import * as service from './service.js';
 
+export async function getApplications(req, res) {
+  const data = await service.getApplications(req.query.status);
+  res.status(200).json({ success: true, data });
+}
+
 export async function getApplication(req, res) {
   const data = await service.getApplication(req.params.applicationId);
   res.status(200).json({ success: true, data });
@@ -18,9 +23,9 @@ export async function updateApplication(req, res) {
   });
 }
 
-export async function getApplicationsCounts() {
+export async function getApplicationsCounts(req, res) {
   const data = await service.getApplicationsCounts();
-  res.status(201).json({
+  res.status(200).json({
     success: true,
     data,
   });

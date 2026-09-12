@@ -30,3 +30,12 @@ export async function reviewVendorApplication(applicationId, payload) {
     payload,
   );
 }
+
+export async function getVenueApplications(status) {
+  const query = status ? `?status=${encodeURIComponent(status)}` : "";
+  return adminAxiosInstance.get(`/admin/venue/applications${query}`);
+}
+
+export async function getVenueApplication(venueId) {
+  return adminAxiosInstance.get(`/admin/venue/applications/${venueId}`);
+}

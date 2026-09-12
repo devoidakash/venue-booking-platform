@@ -3,6 +3,7 @@ import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import AdminOverviewPage from "@/pages/admin/AdminOverviewPage";
 import VendorApplicationsPage from "@/pages/admin/vendor/VendorApplicationsPage";
+import VenueApplicationsStatusPage from "@/pages/admin/venue/VenueApplicationsStatusPage";
 
 export const adminRoutes = [
   {
@@ -33,6 +34,27 @@ export const adminRoutes = [
           {
             path: "rejected",
             element: <VendorApplicationsPage status="rejected" />,
+          },
+        ],
+      },
+      {
+        path: "venue/applications",
+        children: [
+          {
+            index: true,
+            element: <VenueApplicationsStatusPage status="pending" />,
+          },
+          {
+            path: "pending",
+            element: <VenueApplicationsStatusPage status="pending" />,
+          },
+          {
+            path: "approved",
+            element: <VenueApplicationsStatusPage status="approved" />,
+          },
+          {
+            path: "rejected",
+            element: <VenueApplicationsStatusPage status="rejected" />,
           },
         ],
       },
