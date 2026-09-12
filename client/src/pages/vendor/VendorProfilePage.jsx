@@ -136,8 +136,8 @@ export default function VendorProfilePage() {
       setLoading(true);
       setError(null);
       try {
-        const res = await getVendorProfile();
-        const payload = res?.data ?? res ?? null;
+        const data = await getVendorProfile();
+        const payload = data ?? null;
         if (isMounted) setVendor(payload);
       } catch {
         if (isMounted)
