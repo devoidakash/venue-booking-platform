@@ -1,13 +1,6 @@
 import { z } from 'zod';
 
-const ALLOWED_CATEGORY = [
-  'waterpark',
-  'amusement_park',
-  'playzone',
-  'racing_zone',
-  'trampoline_park',
-  'gaming_zone',
-];
+const ALLOWED_CATEGORY = ['waterpark', 'amusement_park', 'turf', 'playzone'];
 const ALLOWED_STATES = [
   'Andhra Pradesh',
   'Chhattisgarh',
@@ -47,6 +40,13 @@ const schema = z.object({
   latitude: z.coerce.number().min(-90).max(90, 'Invalid latitude'),
 
   longitude: z.coerce.number().min(-180).max(180, 'Invalid longitude'),
+  venueGroupId: z
+    .string()
+    .trim()
+    .uuid({
+      message: 'Invalid venue group id',
+    })
+    .optional(),
 });
 
 export default schema;

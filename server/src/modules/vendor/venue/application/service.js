@@ -1,14 +1,17 @@
+import { randomUUID } from 'crypto';
 import path from 'path';
 
 import { pool } from '../../../../infrastructure/database/db.js';
+import ApiError from '../../../../utils/api.error.js';
 import { deleteFromR2, uploadToR2 } from '../../../../utils/r2.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
-import { insertIntoVenueApplications } from './repository.js';
+import ERROR_CONFIG from './error.config.js';
+import { findVenueGroupId, insertIntoVenueApplications } from './repository.js';
 
 export async function processSubmission(vendorId, data, files) {
-  const proofDocument = files.proof_document[0];
+  const proofDocument = files.proofDocument[0];
   const proofDocumentKey = `venue-application/${vendorId}/${Date.now()}-venueProof${path.extname(proofDocument.originalname)}`;
-  const venueImagesKey = files.venue_images.map((image, index) => {
+  const venueImagesKey = files.venueImages.map((image, index) => {
     return `venue-application/${vendorId}/${Date.now()}-${index}-venueImages${path.extname(image.originalname)}`;
   });
   const uploadedKeys = [];
@@ -21,18 +24,31 @@ export async function processSubmission(vendorId, data, files) {
     );
     uploadedKeys.push(proofDocumentKey);
 
-    for (const [index, image] of files.venue_images.entries()) {
+    for (const [index, image] of files.venueImages.entries()) {
       await uploadToR2(image.buffer, venueImagesKey[index], image.mimetype);
 
       uploadedKeys.push(venueImagesKey[index]);
     }
 
+    let venueGroupId;
+
+    if (data.venueGroupId) {
+      const result = await findVenueGroupId(vendorId, data.venueGroupId);
+      if (!result || !result.venue_group_id) {
+        throw new ApiError(ERROR_CONFIG.NO_EXISTING_VENUE_FOUND);
+      }
+      venueGroupId = result.venue_group_id;
+    } else {
+      venueGroupId = randomUUID();
+    }
+
     return await withTransaction(pool, async (client) => {
       return await insertIntoVenueApplications(client, {
-        vendor_id: vendorId,
         ...data,
+        vendorId,
+        venueGroupId,
         images: venueImagesKey,
-        proof_document_key: proofDocumentKey,
+        proofDocumentKey: proofDocumentKey,
       });
     });
   } catch (err) {

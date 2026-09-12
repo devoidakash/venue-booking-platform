@@ -1,8 +1,21 @@
+import { pool } from '../../../../infrastructure/database/db.js';
+
+export async function findVenueGroupId(vendorId, venueGroupId) {
+  const result = await pool.query(
+    `
+  SELECT venue_group_id FROM venue_applications
+  WHERE vendor_id = $1 AND venue_group_id = $2 AND status = 'rejected'`,
+    [vendorId, venueGroupId]
+  );
+  return result.rows[0]?.venue_group_id ?? null;
+}
+
 export async function insertIntoVenueApplications(client, data) {
   const result = await client.query(
     `
       INSERT INTO venue_applications (
         vendor_id,
+        venue_group_id,
         name,
         venue_details,
         category,
@@ -23,14 +36,16 @@ export async function insertIntoVenueApplications(client, data) {
         $6,
         $7,
         $8,
-        ST_SetSRID(ST_MakePoint($10, $9), 4326)::geography,
-        $11,
-        $12
+        $9,
+        ST_SetSRID(ST_MakePoint($11, $10), 4326)::geography,
+        $12,
+        $13
       )
       RETURNING id
     `,
     [
       data.vendorId,
+      data.venueGroupId,
       data.name,
       data.venueDetails,
       data.category,
