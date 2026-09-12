@@ -21,14 +21,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-
 import { getVendorVenues } from "@/api/vendor.api";
 
 const CATEGORY_CONFIG = {
@@ -262,53 +254,11 @@ function VenueCardSkeleton() {
   );
 }
 
-function CategoryPickerDialog({ open, onOpenChange, onSelect }) {
-  const categories = Object.entries(CATEGORY_CONFIG);
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold text-slate-900">
-            Select Venue Category
-          </DialogTitle>
-          <DialogDescription className="text-slate-500">
-            Choose the venue configuration suited for your property setup.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-2">
-          {categories.map(([key, { label, icon: Icon }]) => (
-            <button
-              key={key}
-              onClick={() => onSelect(key)}
-              className="group flex items-center gap-4 rounded-xl border border-slate-200 p-4 text-left transition-all hover:border-indigo-500 hover:bg-indigo-50/40 hover:shadow-sm"
-            >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                <Icon className="h-6 w-6" />
-              </div>
-              <div>
-                <span className="block text-sm font-semibold text-slate-800">
-                  {label}
-                </span>
-                <span className="text-xs text-slate-400">
-                  Configure details
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 export default function VendorVenuesPage() {
   const navigate = useNavigate();
   const [venues, setVenues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
@@ -364,11 +314,6 @@ export default function VendorVenuesPage() {
     });
   }, [venues, searchQuery, selectedStatus]);
 
-  const handleSelectCategory = (category) => {
-    setPickerOpen(false);
-    navigate(`/vendor/venues/new?category=${category}`);
-  };
-
   return (
     <div className="w-full space-y-8">
       {/* Top Banner Header */}
@@ -388,7 +333,7 @@ export default function VendorVenuesPage() {
           </p>
         </div>
         <Button
-          onClick={() => setPickerOpen(true)}
+          onClick={() => navigate("/vendor/venues/new")}
           className="inline-flex h-11 items-center gap-2 rounded-xl bg-indigo-600 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
         >
           <Plus className="h-4 w-4 stroke-[2.5]" />
@@ -492,7 +437,7 @@ export default function VendorVenuesPage() {
           </p>
           {selectedStatus === "all" && (
             <Button
-              onClick={() => setPickerOpen(true)}
+              onClick={() => navigate("/vendor/venues/new")}
               className="mt-6 gap-2 rounded-xl bg-indigo-600 px-5 text-white hover:bg-indigo-700"
             >
               <Plus className="h-4 w-4" />
@@ -532,7 +477,7 @@ export default function VendorVenuesPage() {
             <>
               {/* Inline Add Quick Button */}
               <button
-                onClick={() => setPickerOpen(true)}
+                onClick={() => navigate("/vendor/venues/new")}
                 className="group flex min-h-80 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-6 text-slate-500 transition-all hover:border-indigo-400 hover:bg-indigo-50/30 hover:text-indigo-600"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-xs ring-1 ring-slate-200 transition-all group-hover:scale-110 group-hover:ring-indigo-300">
@@ -551,12 +496,6 @@ export default function VendorVenuesPage() {
           )}
         </div>
       )}
-
-      <CategoryPickerDialog
-        open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        onSelect={handleSelectCategory}
-      />
     </div>
   );
 }
