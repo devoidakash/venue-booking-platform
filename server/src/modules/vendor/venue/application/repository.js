@@ -30,9 +30,9 @@ export async function insertIntoVenueApplications(client, data) {
       RETURNING id
     `,
     [
-      data.vendor_id,
+      data.vendorId,
       data.name,
-      data.venue_details,
+      data.venueDetails,
       data.category,
       data.address,
       data.district,
@@ -41,7 +41,7 @@ export async function insertIntoVenueApplications(client, data) {
       data.latitude,
       data.longitude,
       data.images,
-      data.proof_document_key,
+      data.proofDocumentKey,
     ]
   );
 

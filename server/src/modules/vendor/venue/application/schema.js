@@ -1,11 +1,30 @@
 import { z } from 'zod';
 
-const ALLOWED_CATEGORY = ['waterpark', 'amusement_park', 'playzone'];
+const ALLOWED_CATEGORY = [
+  'waterpark',
+  'amusement_park',
+  'playzone',
+  'racing_zone',
+  'trampoline_park',
+  'gaming_zone',
+];
+const ALLOWED_STATES = [
+  'Andhra Pradesh',
+  'Chhattisgarh',
+  'Goa',
+  'Gujarat',
+  'Karnataka',
+  'Kerala',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Tamil Nadu',
+  'Telangana',
+];
 
 const schema = z.object({
   name: z.string().trim().min(1, 'Venue name is required'),
 
-  venue_details: z.string().trim().min(10, 'Venue details is required'),
+  venueDetails: z.string().trim().min(10, 'Venue details is required'),
 
   category: z.enum(ALLOWED_CATEGORY, {
     message: 'Allowed category are waterpark, amusement_park or playzone',
@@ -15,7 +34,10 @@ const schema = z.object({
 
   district: z.string().trim().min(2, 'District is required'),
 
-  state: z.string().trim().min(1, 'State is required'),
+  state: z.enum(ALLOWED_STATES, {
+    message:
+      'State must be Chhattisgarh, Mumbai, Delhi, Gujarat or Madhya Pradesh',
+  }),
 
   pincode: z
     .string()

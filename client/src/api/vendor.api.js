@@ -7,3 +7,7 @@ export async function getVendorProfile() {
 export async function getVendorVenues() {
   return axiosInstance.get("/vendor/venues");
 }
+
+export async function submitVenueApplication(payload) {
+  return axiosInstance.post("/vendor/venue/application", payload);
+}
