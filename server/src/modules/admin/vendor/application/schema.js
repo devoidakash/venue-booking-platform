@@ -10,11 +10,11 @@ const REJECTION_REASONS = [
   'duplicate_application',
 ];
 
-const rejectionReasonSchema = z.enum(REJECTION_REASONS, {
+const rejectionReason = z.enum(REJECTION_REASONS, {
   message: 'Invalid rejection reason',
 });
 
-const applicationStatusSchema = z
+const applicationStatus = z
   .string()
   .trim()
   .toLowerCase()
@@ -24,7 +24,7 @@ const applicationStatusSchema = z
     })
   );
 
-const reviewStatusSchema = z
+const reviewStatus = z
   .string()
   .trim()
   .toLowerCase()
@@ -34,37 +34,33 @@ const reviewStatusSchema = z
     })
   );
 
-const schema = {
-  status: z.object({
-    status: applicationStatusSchema,
-  }),
+export const status = z.object({
+  status: applicationStatus,
+});
 
-  applicationId: z.object({
-    applicationId: z
-      .string()
-      .trim()
-      .uuid({ message: 'Invalid vendor application id' }),
-  }),
+export const applicationId = z.object({
+  applicationId: z
+    .string()
+    .trim()
+    .uuid({ message: 'Invalid vendor application id' }),
+});
 
-  review: z
-    .object({
-      status: reviewStatusSchema,
+export const review = z
+  .object({
+    status: reviewStatus,
 
-      rejectionReason: rejectionReasonSchema.optional(),
-    })
-    .refine(
-      (data) => {
-        if (data.status === 'rejected') {
-          return !!data.rejectionReason;
-        }
-        return !data.rejectionReason;
-      },
-      {
-        message:
-          'Rejection reason is required when status is rejected and forbidden otherwise',
-        path: ['rejectionReason'],
+    rejectionReason: rejectionReason.optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.status === 'rejected') {
+        return !!data.rejectionReason;
       }
-    ),
-};
-
-export default schema;
+      return !data.rejectionReason;
+    },
+    {
+      message:
+        'Rejection reason is required when status is rejected and forbidden otherwise',
+      path: ['rejectionReason'],
+    }
+  );

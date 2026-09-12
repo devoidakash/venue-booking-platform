@@ -82,7 +82,7 @@ export async function getStatusCount(client) {
     COUNT(*)  FILTER (WHERE status = 'pending') AS pending,
     COUNT(*) FILTER (WHERE status = 'approved') AS approved,
     COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
-    FROM vendor_applications`,
+    FROM vendor_applications`
   );
 
   return {
