@@ -388,7 +388,7 @@ export default function VendorVenuesPage() {
           value={loading ? "..." : statusCounts.pending}
           helper="Check status / admin review"
           active={selectedStatus === "pending"}
-          onClick={() => setSelectedStatus("pending")}
+          onClick={() => navigate("/vendor/venues/applications/status")}
         />
         <StatTile
           icon={Ban}

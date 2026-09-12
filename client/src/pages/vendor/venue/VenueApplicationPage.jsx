@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Building,
   Flag,
+  Car,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -51,8 +52,13 @@ const CATEGORIES = [
     icon: Flag,
   },
   {
-    value: "turf",
-    label: "Turf",
+    value: "racing_zone",
+    label: "Racing Zone",
+    icon: Car,
+  },
+  {
+    value: "gaming_zone",
+    label: "Gaming Zone",
     icon: Gamepad2,
   },
 ];

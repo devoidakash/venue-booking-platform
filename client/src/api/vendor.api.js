@@ -11,3 +11,7 @@ export async function getVendorVenues() {
 export async function submitVenueApplication(payload) {
   return axiosInstance.post("/vendor/venue/application", payload);
 }
+
+export async function getVenuesApplicationStatus() {
+  return axiosInstance.get("/vendor/venues/applications/status");
+}
