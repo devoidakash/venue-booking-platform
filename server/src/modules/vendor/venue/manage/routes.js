@@ -73,4 +73,6 @@ router.patch(
   controller.updateReverificationDetails
 );
 
+router.get('/venues/applications/status', controller.getVenuesApplications);
+
 export default router;

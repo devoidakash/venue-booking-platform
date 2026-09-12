@@ -90,3 +90,11 @@ export async function updateReverificationDetails(req, res) {
     data,
   });
 }
+
+export async function getVenuesApplications(req, res) {
+  const data = await service.getVenuesApplications(req.vendor.id);
+  res.status(200).json({
+    success: true,
+    data,
+  });
+}

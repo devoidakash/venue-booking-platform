@@ -27,10 +27,17 @@ export async function deleteFromR2(key) {
   await r2.send(command);
 }
 
-export async function getPrivateUrl(key) {
-  const command = new GetObjectCommand({
-    Bucket: process.env.R2_BUCKET_NAME,
-    Key: key,
-  });
-  return await getSignedUrl(r2, command, { expiresIn: 600 });
+export async function getPrivateUrl(keys) {
+  return Promise.all(
+    keys.map(async (key) => {
+      const command = new GetObjectCommand({
+        Bucket: process.env.R2_BUCKET_NAME,
+        Key: key,
+      });
+
+      return getSignedUrl(r2, command, {
+        expiresIn: 600,
+      });
+    })
+  );
 }

@@ -1,10 +1,7 @@
 import { pool } from '../../../../infrastructure/database/db.js';
 import ApiError from '../../../../utils/api.error.js';
-import {
-  deleteFromCloudinary,
-  getFromCloudinary,
-  uploadToCloudinary,
-} from '../../../../utils/cloudinary.storage.js';
+import { getFromCloudinary } from '../../../../utils/cloudinary.storage.js';
+import { getPrivateUrl } from '../../../../utils/r2.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
 import ERROR_CONFIG from './error.config.js';
 import * as repository from './repository.js';
@@ -290,4 +287,29 @@ export async function updateReverificationDetails(vendorId, venueId, data) {
       throw err;
     }
   });
+}
+
+export async function getVenuesApplications(vendorId) {
+  const venues = await repository.fetchVenueApplications(vendorId);
+  return Promise.all(
+    venues.map(async (venue) => {
+      return {
+        id: venue.id,
+        name: venue.name,
+        venueDetails: venue.venue_details,
+        category: venue.category,
+        address: venue.address,
+        district: venue.district,
+        state: venue.state,
+        pincode: venue.pincode,
+        latitude: venue.latitude,
+        longitude: venue.longitude,
+        status: venue.status,
+        rejectionReason: venue.rejection_reason,
+        submittedAt: venue.submitted_at,
+        images: await getPrivateUrl(venue.images),
+        proofDocumentUrl: (await getPrivateUrl([venue.proof_document_key]))[0],
+      };
+    })
+  );
 }

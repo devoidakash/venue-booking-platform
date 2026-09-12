@@ -218,3 +218,24 @@ export async function insertIntoVenueReverification(client, data) {
 
   return result.rows[0];
 }
+
+export async function fetchVenueApplications(vendorId) {
+  const result = await pool.query(
+    `
+    SELECT *
+    FROM (
+      SELECT DISTINCT ON (venue_group_id)
+        id, venue_group_id, name, venue_details, category, address, district, state, pincode,
+        ST_Y(geo_loc::geometry) AS latitude,
+        ST_X(geo_loc::geometry) AS longitude,
+        images, status, proof_document_key, rejection_reason, submitted_at
+      FROM venue_applications
+      WHERE vendor_id = $1
+      ORDER BY venue_group_id, submitted_at DESC
+    ) AS latest_per_group
+    WHERE status IN ('pending', 'rejected')
+    `,
+    [vendorId]
+  );
+  return result.rows;
+}
