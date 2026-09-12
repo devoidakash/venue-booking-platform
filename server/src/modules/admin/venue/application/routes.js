@@ -2,14 +2,15 @@ import express from 'express';
 
 import validateSchema from '../../../../middleware/schema.validation.js';
 import * as controller from './controller.js';
-import schema from './schema.js';
+import * as schema from './schema.js';
 
 const router = express.Router();
 
 router.get(
-  '/venue/applications',
-  validateSchema(schema.status, 'query'),
-  controller.getApplications
+  '/venue/applications/:applicationId',
+  validateSchema(schema.applicationId, 'params'),
+  validateSchema(schema.status, 'body'),
+  controller.getApplication
 );
 
 router.patch(

@@ -5,8 +5,8 @@ import { withTransaction } from '../../../../utils/transaction.js';
 import { APPLICATION_ERROR_CONFIG } from './error.config.js';
 import * as repository from './repository.js';
 
-export async function getApplications(status) {
-  const applications = await repository.fetchApplications(status);
+export async function getApplication(applicationId) {
+  const applications = await repository.fetchApplication(applicationId);
   return Promise.all(
     applications.map(async (item) => {
       return {

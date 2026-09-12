@@ -14,17 +14,17 @@ const REJECTION_REASONS = [
   'suspicious_or_fraudulent_information',
 ];
 
-const rejectionReasonSchema = z.enum(REJECTION_REASONS, {
+const rejectionReason = z.enum(REJECTION_REASONS, {
   message: 'Invalid rejection reason',
 });
 
-const applicationStatusSchema = z
+const applicationStatus = z
   .string()
   .trim()
   .toLowerCase()
   .pipe(z.enum(['pending', 'approved', 'rejected']));
 
-const reviewStatusSchema = z
+const reviewStatus = z
   .string()
   .trim()
   .toLowerCase()
@@ -34,37 +34,33 @@ const reviewStatusSchema = z
     })
   );
 
-const schema = {
-  status: z.object({
-    status: applicationStatusSchema,
+export const status = z.object({
+  status: applicationStatus,
+});
+
+export const applicationId = z.object({
+  applicationId: z.string().trim().uuid({
+    message: 'Invalid venue application id',
   }),
+});
 
-  applicationId: z.object({
-    applicationId: z.string().trim().uuid({
-      message: 'Invalid venue application id',
-    }),
-  }),
+export const review = z
+  .object({
+    status: reviewStatus,
 
-  review: z
-    .object({
-      status: reviewStatusSchema,
-
-      rejection_reason: rejectionReasonSchema.optional(),
-    })
-    .refine(
-      (data) => {
-        if (data.status === 'rejected') {
-          return !!data.rejection_reason;
-        }
-
-        return !data.rejection_reason;
-      },
-      {
-        message:
-          'Rejection reason is required when status is rejected and forbidden otherwise',
-        path: ['rejection_reason'],
+    rejection_reason: rejectionReason.optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.status === 'rejected') {
+        return !!data.rejection_reason;
       }
-    ),
-};
 
-export default schema;
+      return !data.rejection_reason;
+    },
+    {
+      message:
+        'Rejection reason is required when status is rejected and forbidden otherwise',
+      path: ['rejection_reason'],
+    }
+  );

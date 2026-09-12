@@ -1,7 +1,7 @@
 import * as service from './service.js';
 
-export async function getApplications(req, res) {
-  const data = await service.getApplications(req.query.status);
+export async function getApplication(req, res) {
+  const data = await service.getApplication(req.params.applicationId);
   res.status(200).json({ success: true, data });
 }
 
