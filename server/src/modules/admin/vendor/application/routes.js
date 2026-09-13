@@ -21,4 +21,10 @@ router.patch(
 
 router.get('/vendor/applications/counts', controller.getApplicationsCount);
 
+router.get(
+  '/vendor/:vendorId',
+  validateSchema(schema.vendorId, 'params'),
+  controller.getVendorProfile
+);
+
 export default router;

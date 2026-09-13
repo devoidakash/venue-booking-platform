@@ -251,7 +251,7 @@ export default function VenueReviewApplication({
                 {vendor?.name || "Unknown vendor"}
               </p>
               <Link
-                to={`/admin/vendors/${vendor?.id}`}
+                to={`/admin/vendor/profile/${vendor?.id}`}
                 className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
               >
                 View vendor profile

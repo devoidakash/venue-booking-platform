@@ -19,7 +19,7 @@ const adminNavigationLinks = [
   },
   {
     to: "/admin",
-    label: "Vendor ",
+    label: "Vendor Request ",
     icon: UserPlus,
     children: [
       {
@@ -41,7 +41,7 @@ const adminNavigationLinks = [
   },
   {
     to: "/admin",
-    label: "Venue",
+    label: "Venue Request",
     icon: Building2,
     children: [
       {

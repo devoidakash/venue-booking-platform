@@ -3,6 +3,7 @@ import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import AdminOverviewPage from "@/pages/admin/AdminOverviewPage";
 import VendorApplicationsPage from "@/pages/admin/vendor/VendorApplicationsPage";
+import VendorProfilePage from "@/pages/admin/vendor/VendorProfilePage";
 import VenueApplicationsStatusPage from "@/pages/admin/venue/VenueApplicationsStatusPage";
 import VenueReviewApplicationPage from "@/pages/admin/venue/VenueReviewApplicationPage";
 
@@ -62,6 +63,10 @@ export const adminRoutes = [
             element: <VenueReviewApplicationPage />,
           },
         ],
+      },
+      {
+        path: "vendor/profile/:id",
+        element: <VendorProfilePage />,
       },
     ],
   },

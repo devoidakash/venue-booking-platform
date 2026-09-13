@@ -91,3 +91,26 @@ export async function getStatusCount(client) {
     rejected: Number(result.rows[0].rejected),
   };
 }
+
+export async function findVendorById(client, vendorId) {
+  const result = await client.query(
+    `SELECT
+       vp.id,
+       vp.vendor_name,
+       vp.phone,
+       vp.district,
+       vp.state,
+       vp.is_suspended,
+       vp.suspension_reason,
+       vp.approved_at,
+       u.email,
+       u.status AS account_status
+     FROM vendor_profiles vp
+     JOIN users u ON u.id = vp.user_id
+     WHERE vp.id = $1
+     LIMIT 1`,
+    [vendorId]
+  );
+
+  return result.rows[0] ?? null;
+}

@@ -34,15 +34,14 @@ const reviewStatus = z
     })
   );
 
+const UUID = z.string().trim().uuid({ message: 'Invalid id' });
+
 export const status = z.object({
   status: applicationStatus,
 });
 
 export const applicationId = z.object({
-  applicationId: z
-    .string()
-    .trim()
-    .uuid({ message: 'Invalid vendor application id' }),
+  applicationId: UUID,
 });
 
 export const review = z
@@ -64,3 +63,7 @@ export const review = z
       path: ['rejectionReason'],
     }
   );
+
+export const vendorId = z.object({
+  vendorId: UUID,
+});

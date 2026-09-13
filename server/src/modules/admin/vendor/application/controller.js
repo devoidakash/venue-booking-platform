@@ -20,3 +20,8 @@ export async function getApplicationsCount(req, res) {
   const data = await service.getApplicationsCount();
   res.status(200).json({ status: true, data });
 }
+
+export async function getVendorProfile(req, res) {
+  const data = await service.getVendorProfile(req.params.vendorId);
+  res.status(200).json({ status: true, data });
+}

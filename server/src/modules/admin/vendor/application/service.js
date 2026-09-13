@@ -70,3 +70,24 @@ async function handleRejected(reviewerId, applicationId, rejectionReason) {
 export async function getApplicationsCount() {
   return repository.getStatusCount(pool);
 }
+
+export async function getVendorProfile(vendorId) {
+  const vendor = await repository.findVendorById(pool, vendorId);
+
+  if (!vendor) {
+    throw new ApiError(APPLICATION_ERROR_CONFIG.VENDOR_NOT_FOUND);
+  }
+
+  return {
+    id: vendor.id,
+    vendorName: vendor.vendor_name,
+    email: vendor.email,
+    phone: vendor.phone,
+    district: vendor.district,
+    state: vendor.state,
+    isSuspended: vendor.is_suspended,
+    suspensionReason: vendor.suspension_reason,
+    accountStatus: vendor.account_status,
+    approvedAt: vendor.approved_at,
+  };
+}
