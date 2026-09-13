@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Mail,
   Lock,
@@ -8,7 +8,7 @@ import {
   ShieldAlert,
   Loader2,
 } from "lucide-react";
-import { adminLogin } from "@/api/admin.api";
+import { adminLogin, getAdminMe } from "@/api/admin.api";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminLoginPage() {
@@ -18,6 +18,26 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkAdminSession() {
+      try {
+        await getAdminMe();
+        navigate("/admin/overview", { replace: true });
+      } catch {
+        if (isMounted) setCheckingSession(false);
+      }
+    }
+
+    checkAdminSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,6 +52,10 @@ export default function AdminLoginPage() {
       setSubmitting(false);
     }
   };
+
+  if (checkingSession) {
+    return null;
+  }
 
   return (
     <div className="relative min-h-screen w-full flex flex-col items-center justify-center bg-slate-50 px-4">
