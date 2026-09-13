@@ -129,6 +129,7 @@ function StatTile({
   icon: Icon,
   iconBg,
   iconColor,
+  borderColor,
   label,
   value,
   helper,
@@ -140,8 +141,8 @@ function StatTile({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex items-center justify-between rounded-xl border bg-white p-5 text-left shadow-xs transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm ${
-        active ? "border-indigo-400 ring-2 ring-indigo-100" : "border-slate-200"
+      className={`flex items-center justify-between rounded-xl border bg-white p-5 text-left shadow-xs transition-all hover:-translate-y-0.5 hover:shadow-sm ${
+        active ? "border-indigo-400 ring-2 ring-indigo-100" : borderColor
       }`}
     >
       <div className="space-y-1">
@@ -349,21 +350,12 @@ export default function VendorVenuesPage() {
       )}
 
       {/* KPI Overview Tiles */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        <StatTile
-          icon={Building2}
-          iconBg="bg-indigo-50"
-          iconColor="text-indigo-600"
-          label="Registered Venues"
-          value={loading ? "..." : statusCounts.all}
-          helper="Properties across all regions"
-          active={selectedStatus === "all"}
-          onClick={() => setSelectedStatus("all")}
-        />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatTile
           icon={CircleCheck}
           iconBg="bg-emerald-50"
           iconColor="text-emerald-600"
+          borderColor="border-emerald-200/70 hover:border-emerald-300"
           label="Published / Live"
           value={loading ? "..." : statusCounts.live}
           helper="Accepting customer bookings"
@@ -374,6 +366,7 @@ export default function VendorVenuesPage() {
           icon={FileText}
           iconBg="bg-slate-100"
           iconColor="text-slate-600"
+          borderColor="border-slate-300 hover:border-slate-400"
           label="Draft Venues"
           value={loading ? "..." : statusCounts.draft}
           helper="Still being configured"
@@ -384,6 +377,7 @@ export default function VendorVenuesPage() {
           icon={Clock3}
           iconBg="bg-amber-50"
           iconColor="text-amber-600"
+          borderColor="border-amber-200/70 hover:border-amber-300"
           label="Pending"
           value={loading ? "..." : statusCounts.pending}
           helper="Check status / admin review"
@@ -394,6 +388,7 @@ export default function VendorVenuesPage() {
           icon={Ban}
           iconBg="bg-rose-50"
           iconColor="text-rose-600"
+          borderColor="border-rose-200/70 hover:border-rose-300"
           label="Suspended Venues"
           value={loading ? "..." : statusCounts.suspended}
           helper="Contact support"
