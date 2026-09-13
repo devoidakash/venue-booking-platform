@@ -53,7 +53,7 @@ export default function Sidebar({ links = [], onLogout }) {
 
 function NavItem({ link, currentPath, currentSearch }) {
   const hasChildren = Boolean(link.children?.length);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(null);
   const MainIcon = link.icon;
 
   const isRouteMatch = (to) => {
@@ -75,14 +75,14 @@ function NavItem({ link, currentPath, currentSearch }) {
     ? link.children.some((child) => isRouteMatch(child.to))
     : false;
 
-  const shouldShowChildren = hasActiveChild || isExpanded;
+  const shouldShowChildren = isExpanded ?? hasActiveChild;
   const isMainActive = isRouteMatch(link.to);
 
   if (hasChildren) {
     return (
       <li className="space-y-1">
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => setIsExpanded(!shouldShowChildren)}
           className={`group flex w-full items-center justify-between rounded-xl px-4 py-3 transition-all duration-200 ${
             hasActiveChild
               ? "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200"

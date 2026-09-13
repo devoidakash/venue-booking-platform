@@ -4,6 +4,7 @@ import AdminLoginPage from "@/pages/admin/AdminLoginPage";
 import AdminOverviewPage from "@/pages/admin/AdminOverviewPage";
 import VendorApplicationsPage from "@/pages/admin/vendor/VendorApplicationsPage";
 import VenueApplicationsStatusPage from "@/pages/admin/venue/VenueApplicationsStatusPage";
+import VenueReviewApplicationPage from "@/pages/admin/venue/VenueReviewApplicationPage";
 
 export const adminRoutes = [
   {
@@ -55,6 +56,10 @@ export const adminRoutes = [
           {
             path: "rejected",
             element: <VenueApplicationsStatusPage status="rejected" />,
+          },
+          {
+            path: ":applicationId",
+            element: <VenueReviewApplicationPage />,
           },
         ],
       },
