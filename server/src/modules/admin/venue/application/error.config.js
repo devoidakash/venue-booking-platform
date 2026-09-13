@@ -9,4 +9,9 @@ export const APPLICATION_ERROR_CONFIG = {
     message: 'No pending application found',
     code: 'APPLICATION_NOT_PENDING',
   },
+  VENUE_APPLICATION_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Venue application not found',
+    code: 'VENUE_APPLICATION_NOT_FOUND',
+  },
 };

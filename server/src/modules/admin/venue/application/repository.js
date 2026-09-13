@@ -15,24 +15,53 @@ export async function fetchApplications(status) {
   LEFT JOIN admins a ON a.id = va.reviewed_by
   ORDER BY va.venue_group_id, va.submitted_at DESC
   ) AS latest_per_group
-  WHERE ($1::application_status IS NULL OR status = $1::application_status)
+  WHERE status = $1
   ORDER BY submitted_at ASC`,
     [statusFilter]
   );
   return result.rows;
 }
 
-export async function fetchApplication(applicationId, status) {
+export async function fetchApplication(applicationId) {
   const result = await pool.query(
     `
-  SELECT id, vendor_id, name, venue_details, category, address, district, state, pincode, geo_loc, images, proof_document_key, rejection_reason, submitted_at, reviewed_at
-  FROM venue_applications
-  WHERE id = $1
-  ORDER BY submitted_at DESC
-  LIMIT 1`,
+    SELECT *
+    FROM (
+      SELECT
+        va.id,
+        va.name,
+        va.category,
+        va.venue_details,
+        va.address,
+        va.district,
+        va.pincode,
+        va.state,
+        ST_Y(va.geo_loc::geometry) AS latitude,
+        ST_X(va.geo_loc::geometry) AS longitude,
+        va.images,
+        va.proof_document_key,
+        va.rejection_reason,
+        va.submitted_at,
+        va.reviewed_at,
+        va.reviewed_by,
+        va.status,
+        a.id AS reviewer_id,
+        a.email AS reviewer_email,
+        vp.id AS vendor_id,
+        vp.vendor_name
+      FROM venue_applications va
+      JOIN vendor_profiles vp
+        ON vp.id = va.vendor_id
+      LEFT JOIN admins a
+        ON a.id = va.reviewed_by
+    ) AS latest_application
+    WHERE latest_application.id = $1
+      
+    `,
     [applicationId]
   );
-  return result.rows;
+
+  return result.rows[0];
 }
 
 export async function markVenueAsRejected(reviewerId, applicationId, data) {

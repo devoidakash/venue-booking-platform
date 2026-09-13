@@ -37,29 +37,41 @@ export async function getApplications(status) {
 }
 
 export async function getApplication(applicationId) {
-  const applications = await repository.fetchApplication(applicationId);
-  return Promise.all(
-    applications.map(async (item) => {
-      return {
-        id: item.id,
-        vendor_id: item.vendor_id,
-        name: item.name,
-        venue_details: item.venue_details,
-        category: item.category,
-        address: item.address,
-        district: item.district,
-        state: item.state,
-        pincode: item.pincode,
-        geo_loc: item.geo_loc,
-        images: await getPrivateUrl(item.images),
-        proof_document_url: (await getPrivateUrl(item.proof_document_key))[0],
-        rejection_reason: item.rejection_reason,
-        submitted_at: item.submitted_at,
-        reviewed_at: item.reviewed_at,
-        reviewed_by: item.reviewed_by,
-      };
-    })
-  );
+  const application = await repository.fetchApplication(applicationId);
+
+  if (!application) {
+    throw new ApiError(APPLICATION_ERROR_CONFIG.VENUE_APPLICATION_NOT_FOUND);
+  }
+
+  return {
+    id: application.id,
+    vendor_id: application.vendor_id,
+    name: application.name,
+    venue_details: application.venue_details,
+    category: application.category,
+    address: application.address,
+    district: application.district,
+    state: application.state,
+    pincode: application.pincode,
+    latitude: application.latitude,
+    longitude: application.longitude,
+    images: await getPrivateUrl(application.images),
+    proofDocumentUrl: (
+      await getPrivateUrl([application.proof_document_key])
+    )[0],
+    status: application.status,
+    rejectionReason: application.rejection_reason,
+    submittedAt: application.submitted_at,
+    reviewedAt: application.reviewed_at,
+    vendor: {
+      id: application.vendor_id,
+      name: application.vendor_name,
+    },
+    reviewedBy: {
+      id: application.reviewer_id,
+      email: application.reviewer_email,
+    },
+  };
 }
 
 export async function updateApplication(reviewerId, applicationId, data) {
