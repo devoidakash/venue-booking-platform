@@ -1,7 +1,9 @@
 import axiosInstance from "@/lib/axios.instance";
 
 export async function getMe() {
-  return axiosInstance.get("/auth/me");
+  return axiosInstance.get("/auth/me", {
+    skipAuthRedirect: true,
+  });
 }
 
 export async function requestOtp(email) {

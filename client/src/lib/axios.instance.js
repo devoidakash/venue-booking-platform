@@ -17,6 +17,11 @@ function onRefreshed() {
   refreshSubscribers = [];
 }
 
+function onRefreshFailed(error) {
+  refreshSubscribers.forEach((callback) => callback(error));
+  refreshSubscribers = [];
+}
+
 axiosInstance.interceptors.response.use(
   (response) => response.data.data,
 
@@ -26,6 +31,10 @@ axiosInstance.interceptors.response.use(
     if (!response) return Promise.reject(error);
 
     const code = response.data?.code;
+
+    if (config.skipAuthRedirect) {
+      return Promise.reject(error);
+    }
 
     if (code === "SESSION_EXPIRED") {
       window.location.href = "/login";
@@ -38,25 +47,31 @@ axiosInstance.interceptors.response.use(
     ) {
       config._retry = true;
 
-      if (!isRefreshing) {
-        isRefreshing = true;
-        try {
-          await axiosInstance.post("/auth/refresh");
-          isRefreshing = false;
-          onRefreshed();
-        } catch (refreshError) {
-          isRefreshing = false;
-          refreshSubscribers = [];
-          window.location.href = "/login";
-          return Promise.reject(refreshError);
-        }
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          subscribeTokenRefresh((refreshError) => {
+            if (refreshError) {
+              reject(refreshError);
+              return;
+            }
+
+            resolve(axiosInstance(config));
+          });
+        });
       }
 
-      return new Promise((resolve) => {
-        subscribeTokenRefresh(() => {
-          resolve(axiosInstance(config));
-        });
-      });
+      isRefreshing = true;
+      try {
+        await axiosInstance.post("/auth/refresh");
+        isRefreshing = false;
+        onRefreshed();
+        return axiosInstance(config);
+      } catch (refreshError) {
+        isRefreshing = false;
+        onRefreshFailed(refreshError);
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
+      }
     }
 
     return Promise.reject(error);

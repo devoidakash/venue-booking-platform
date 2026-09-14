@@ -31,8 +31,12 @@ export default function LoginForm() {
     let isMounted = true;
 
     async function checkAuthenticatedUser() {
-      await getMe();
-      if (isMounted) navigate("/", { replace: true });
+      try {
+        await getMe();
+        if (isMounted) navigate("/", { replace: true });
+      } catch {
+        // An unauthenticated user should remain on the login form.
+      }
     }
 
     checkAuthenticatedUser();
