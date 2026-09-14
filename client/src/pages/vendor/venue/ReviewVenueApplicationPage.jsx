@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   Clock3,
   XCircle,
@@ -21,7 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getVenuesApplicationStatus } from "@/api/vendor.api";
+import { getVenuesApplication } from "@/api/vendor.api";
 
 const STATUS_MAP = {
   pending: {
@@ -235,13 +236,12 @@ function ApplicationCard({ item, onPreviewDoc }) {
 }
 
 export default function ReviewVenueApplicationPage() {
-  const [applications, setApplications] = useState([]);
+  const { applicationId } = useParams();
+  const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [previewDocUrl, setPreviewDocUrl] = useState(null);
-  const pendingCount = applications.filter(
-    (application) => application.status === "pending",
-  ).length;
+  const pendingCount = application?.status === "pending" ? 1 : 0;
 
   useEffect(() => {
     let isMounted = true;
@@ -250,9 +250,8 @@ export default function ReviewVenueApplicationPage() {
       setLoading(true);
       setError(null);
       try {
-        const data = await getVenuesApplicationStatus();
-        const payload = Array.isArray(data) ? data : (data ?? []);
-        if (isMounted) setApplications(payload);
+        const data = await getVenuesApplication(applicationId);
+        if (isMounted) setApplication(data);
       } catch {
         if (isMounted) setError("Failed to fetch venue applications.");
       } finally {
@@ -264,7 +263,7 @@ export default function ReviewVenueApplicationPage() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [applicationId]);
 
   return (
     <div className="w-full space-y-6 pb-12">
@@ -311,7 +310,7 @@ export default function ReviewVenueApplicationPage() {
             </div>
           ))}
         </div>
-      ) : applications.length === 0 ? (
+      ) : !application ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-white py-16 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
             <Layers className="h-6 w-6" />
@@ -325,7 +324,7 @@ export default function ReviewVenueApplicationPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          {applications.map((item) => (
+          {[application].map((item) => (
             <ApplicationCard
               key={item.id}
               item={item}

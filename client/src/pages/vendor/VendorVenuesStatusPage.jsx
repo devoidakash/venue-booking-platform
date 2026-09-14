@@ -2,13 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus,
+  MapPin,
   Building2,
+  Waves,
+  Gamepad2,
   AlertTriangle,
   CircleCheck,
   Clock3,
   FileText,
   Ban,
   Search,
+  ChevronRight,
+  Car,
+  Dumbbell,
+  Mountain,
+  Flag,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,10 +24,106 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getVendorVenues } from "@/api/vendor.api";
 import VendorVenueStatusCard from "@/components/vendor/VendorVenueStatusCard";
 
+const CATEGORY_CONFIG = {
+  waterpark: {
+    label: "Water Park",
+    icon: Waves,
+    badgeBg: "bg-cyan-50 text-cyan-700 border-cyan-200/60",
+  },
+  racingZone: {
+    label: "Racing Zone",
+    icon: Car,
+    badgeBg: "bg-red-50 text-red-700 border-red-200/60",
+  },
+  trampolinePark: {
+    label: "Trampoline Park",
+    icon: Dumbbell,
+    badgeBg: "bg-orange-50 text-orange-700 border-orange-200/60",
+  },
+  gamingZone: {
+    label: "Gaming Zone",
+    icon: Gamepad2,
+    badgeBg: "bg-purple-50 text-purple-700 border-purple-200/60",
+  },
+  playZone: {
+    label: "Play Zone",
+    icon: Flag,
+    badgeBg: "bg-pink-50 text-pink-700 border-pink-200/60",
+  },
+  adventurePark: {
+    label: "Adventure Park",
+    icon: Mountain,
+    badgeBg: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+  },
+};
+
+function toTitleCase(value = "") {
+  return value
+    .split("_")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
+}
+
+function getCategoryMeta(category) {
+  return (
+    CATEGORY_CONFIG[category] || {
+      label: toTitleCase(category || "Venue"),
+      icon: Building2,
+      badgeBg: "bg-indigo-50 text-indigo-700 border-indigo-200/60",
+    }
+  );
+}
+
+const STATUS_CONFIG = {
+  live: {
+    label: "Live ",
+    dotColor: "bg-emerald-500 ring-emerald-100",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+  },
+  draft: {
+    label: "Draft",
+    dotColor: "bg-slate-400 ring-slate-100",
+    badgeClass: "bg-slate-50 text-slate-600 border-slate-200",
+  },
+  pending: {
+    label: "Pending Review",
+    dotColor: "bg-amber-500 ring-amber-100",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200/60",
+  },
+
+  suspended: {
+    label: "Suspended",
+    dotColor: "bg-rose-500 ring-rose-100",
+    badgeClass: "bg-rose-50 text-rose-700 border-rose-200/60",
+  },
+};
+
+function getStatusMeta(status) {
+  return (
+    STATUS_CONFIG[status] || {
+      label: toTitleCase(status || "unknown"),
+      dotColor: "bg-slate-400 ring-slate-100",
+      badgeClass: "bg-slate-50 text-slate-600 border-slate-200",
+    }
+  );
+}
+
 function withCacheBust(url, token) {
   if (!url) return url;
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}_cb=${token}`;
+}
+
+function StatusBadge({ status }) {
+  const meta = getStatusMeta(status);
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${meta.badgeClass}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ring-4 ${meta.dotColor}`} />
+      {meta.label}
+    </span>
+  );
 }
 
 function StatTile({
@@ -60,6 +164,82 @@ function StatTile({
   );
 }
 
+function VenueCard({ venue, onClick }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const {
+    icon: CategoryIcon,
+    label: categoryLabel,
+    badgeBg,
+  } = getCategoryMeta(venue.category);
+  const showImage = venue.coverImageUrl && !imgFailed;
+
+  return (
+    <div
+      onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onClick()}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/5 cursor-pointer text-left"
+    >
+      {/* Top Banner / Cover */}
+      <div className="relative aspect-3/4 w-full overflow-hidden bg-slate-100">
+        {showImage ? (
+          <img
+            src={venue.coverImageUrl}
+            alt={venue.name}
+            onError={() => setImgFailed(true)}
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-slate-100">
+            <CategoryIcon className="h-12 w-12 text-slate-300" />
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-80" />
+
+        {/* Top Badges */}
+        <div className="absolute inset-x-3.5 top-3.5 flex items-center justify-between gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-semibold backdrop-blur-md ${badgeBg}`}
+          >
+            <CategoryIcon className="h-3.5 w-3.5" />
+            {categoryLabel}
+          </span>
+          <StatusBadge status={venue.status} />
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex flex-1 flex-col justify-between p-5">
+        <div>
+          <h3 className="line-clamp-1 text-lg font-bold tracking-tight text-slate-900 group-hover:text-indigo-600 transition-colors">
+            {venue.name}
+          </h3>
+
+          <div className="mt-2.5 flex items-center gap-1.5 text-sm text-slate-500">
+            <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
+            <span className="truncate font-medium">
+              {venue.district}, {venue.state}
+            </span>
+          </div>
+        </div>
+
+        {/* Card Footer Bar */}
+        <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+          <span className="text-xs font-medium text-slate-400 group-hover:text-slate-600">
+            ID: {venue.id?.slice(0, 8)}...
+          </span>
+          <div className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 transition-transform group-hover:translate-x-0.5">
+            Manage Venue
+            <ChevronRight className="h-4 w-4" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function VenueCardSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
@@ -79,6 +259,7 @@ function VenueCardSkeleton() {
 export default function VendorVenuesPage() {
   const navigate = useNavigate();
   const [venues, setVenues] = useState([]);
+  const [venueApplications, setVenueApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,14 +273,25 @@ export default function VendorVenuesPage() {
       setError(null);
       try {
         const res = await getVendorVenues();
-        const rawData = Array.isArray(res) ? res : (res?.data ?? []);
+        const payload = Array.isArray(res)
+          ? { venues: res }
+          : (res?.data ?? res ?? {});
+        const rawVenues = payload.venues ?? [];
+        const rawApplications = payload.venueApplications ?? [];
 
         const cacheToken = Date.now();
-        const fresh = rawData.map((v) => ({
+        const freshVenues = rawVenues.map((v) => ({
           ...v,
           coverImageUrl: withCacheBust(v.coverImageUrl, cacheToken),
         }));
-        if (isMounted) setVenues(fresh);
+        const freshApplications = rawApplications.map((application) => ({
+          ...application,
+          coverImageUrl: withCacheBust(application.coverImageUrl, cacheToken),
+        }));
+        if (isMounted) {
+          setVenues(freshVenues);
+          setVenueApplications(freshApplications);
+        }
       } catch {
         if (isMounted) setError("Couldn't load your venues. Try refreshing.");
       } finally {
@@ -118,10 +310,10 @@ export default function VendorVenuesPage() {
       all: venues.length,
       live: venues.filter((v) => v.status === "live").length,
       draft: venues.filter((v) => v.status === "draft").length,
-      pending: venues.filter((v) => v.status === "pending").length,
+      pending: venueApplications.length,
       suspended: venues.filter((v) => v.status === "suspended").length,
     }),
-    [venues],
+    [venues, venueApplications],
   );
 
   const filteredVenues = useMemo(() => {
@@ -136,6 +328,19 @@ export default function VendorVenuesPage() {
     });
   }, [venues, searchQuery, selectedStatus]);
 
+  const filteredApplications = useMemo(() => {
+    return venueApplications.filter((application) => {
+      const query = searchQuery.toLowerCase();
+      return (
+        application.name?.toLowerCase().includes(query) ||
+        application.district?.toLowerCase().includes(query) ||
+        application.state?.toLowerCase().includes(query)
+      );
+    });
+  }, [venueApplications, searchQuery]);
+
+  const totalItems = venues.length + venueApplications.length;
+
   return (
     <div className="w-full space-y-8">
       {/* Top Banner Header */}
@@ -146,7 +351,7 @@ export default function VendorVenuesPage() {
               Venue Inventory
             </h1>
             <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">
-              {venues.length} Total
+              {totalItems} Total
             </span>
           </div>
           <p className="mt-1 text-sm text-slate-500">
@@ -203,7 +408,7 @@ export default function VendorVenuesPage() {
           value={loading ? "..." : statusCounts.pending}
           helper="Check status / admin review"
           active={selectedStatus === "pending"}
-          onClick={() => navigate("/vendor/venues/application/status")}
+          onClick={() => setSelectedStatus("pending")}
         />
         <StatTile
           icon={Ban}
@@ -239,6 +444,29 @@ export default function VendorVenuesPage() {
             <VenueCardSkeleton key={i} />
           ))}
         </div>
+      ) : selectedStatus === "pending" ? (
+        filteredApplications.length === 0 ? (
+          <div className="rounded-2xl border border-slate-200 bg-white py-16 text-center">
+            <p className="text-sm font-semibold text-slate-800">
+              No venue applications match your filters
+            </p>
+            <p className="mt-1 text-xs text-slate-400">
+              Try adjusting your search query.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredApplications.map((application) => (
+              <VendorVenueStatusCard
+                key={application.id}
+                application={application}
+                onClick={() =>
+                  navigate(`/vendor/venues/applications/${application.id}`)
+                }
+              />
+            ))}
+          </div>
+        )
       ) : venues.length === 0 && !error ? (
         <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-white p-16 text-center shadow-xs">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 ring-8 ring-indigo-50/50">
@@ -282,7 +510,7 @@ export default function VendorVenuesPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredVenues.map((venue) => (
-            <VendorVenueStatusCard
+            <VenueCard
               key={`${venue.id}-${venue.coverImageUrl}`}
               venue={venue}
               onClick={() => navigate(`/vendor/venues/${venue.id}`)}

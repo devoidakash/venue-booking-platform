@@ -12,10 +12,6 @@ export async function submitVenueApplication(payload) {
   return axiosInstance.post("/vendor/venues/application", payload);
 }
 
-export async function getVenuesApplicationStatus() {
-  return axiosInstance.get("/vendor/venues/applications/status");
-}
-
 export async function getVenueDetails(venueId) {
   return axiosInstance.get(`/vendor/venues/${venueId}`);
 }
@@ -54,4 +50,12 @@ export async function updateVenuePricing(venueId, payload) {
 
 export async function updateVenueStatus(venueId, status) {
   return axiosInstance.patch(`/vendor/venues/${venueId}/status`, { status });
+}
+
+export async function getVenuesApplicationStatus() {
+  return axiosInstance.get("/vendor/venues/applications/status");
+}
+
+export async function getVenuesApplication(applicationId) {
+  return axiosInstance.get(`/vendor/venues/applications/${applicationId}`);
 }

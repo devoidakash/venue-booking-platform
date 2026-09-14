@@ -6,8 +6,8 @@ import VendorOveriviewPage from "@/pages/vendor/VendorOverviewPage";
 import VendorProfilePage from "@/pages/vendor/VendorProfilePage";
 import NewVenueAppllicationPage from "@/pages/vendor/venue/NewVenueApplicationPage";
 import VenueManagementPage from "@/pages/vendor/venue/VenueManagementPage";
+import ReviewVenueApplicationPage from "@/pages/vendor/venue/ReviewVenueApplicationPage";
 import VendorVenuesPage from "@/pages/vendor/VendorVenuesStatusPage";
-import VenueApplicationStatusPage from "@/pages/vendor/venue/VenueApplicationStatusPage";
 
 export const vendorRoutes = [
   {
@@ -41,8 +41,8 @@ export const vendorRoutes = [
         element: <VenueManagementPage />,
       },
       {
-        path: "venues/application/status",
-        element: <VenueApplicationStatusPage />,
+        path: "venues/applications/:applicationId",
+        element: <ReviewVenueApplicationPage />,
       },
     ],
   },

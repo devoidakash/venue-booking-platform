@@ -106,14 +106,20 @@ function CategoryBadge({ category }) {
   );
 }
 
-function SummaryCard({ application }) {
+function SummaryCard({ application, onClick }) {
   const category = CATEGORY_CONFIG[normalizeKey(application.category)] || {
     icon: Building2,
   };
   const CategoryIcon = category.icon;
 
   return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/5">
+    <article
+      onClick={onClick}
+      onKeyDown={(event) => event.key === "Enter" && onClick?.()}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className="group cursor-pointer overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/5"
+    >
       <div className="relative aspect-3/4 overflow-hidden bg-slate-100">
         {application.coverImageUrl ? (
           <img
@@ -393,6 +399,6 @@ export default function VendorVenueStatusCard({
   return detailed ? (
     <DetailedCard application={application} onPreviewDoc={onPreviewDoc} />
   ) : (
-    <SummaryCard application={application} />
+    <SummaryCard application={application} onClick={onClick} />
   );
 }

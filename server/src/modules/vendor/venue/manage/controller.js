@@ -8,8 +8,11 @@ export async function getVenues(req, res) {
   });
 }
 
-export async function getVenuesApplicationStatus(req, res) {
-  const data = await service.getVenuesApplicationStatus(req.vendor.id);
+export async function getVenuesApplication(req, res) {
+  const data = await service.getVenuesApplication(
+    req.vendor.id,
+    req.params.applicationId
+  );
   res.status(200).json({
     success: true,
     data,

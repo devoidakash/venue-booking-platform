@@ -11,9 +11,9 @@ import ERROR_CONFIG from './error.config.js';
 import * as repository from './repository.js';
 
 export async function getVenues(vendorId) {
-  const venues = await repository.featchVenues(vendorId);
-  return Promise.all(
-    venues.map(async (venue) => {
+  const result = await repository.featchVenues(vendorId);
+  const venues = await Promise.all(
+    result.map(async (venue) => {
       const coverImageId = `venues/${vendorId}/${venue.id}/cover_image`;
       return {
         id: venue.id,
@@ -26,12 +26,8 @@ export async function getVenues(vendorId) {
       };
     })
   );
-}
-
-export async function getVenuesApplicationStatus(vendorId, status) {
   const applications = await repository.fetchVenuesApplicationStatus(vendorId);
-
-  return Promise.all(
+  const venueApplications = await Promise.all(
     applications.map(async (application) => ({
       id: application.id,
       name: application.name,
@@ -43,6 +39,10 @@ export async function getVenuesApplicationStatus(vendorId, status) {
       submittedAt: application.submitted_at,
     }))
   );
+  return {
+    venues,
+    venueApplications,
+  };
 }
 
 export async function getVenuesApplication(vendorId, applicationId) {
@@ -54,6 +54,7 @@ export async function getVenuesApplication(vendorId, applicationId) {
 
   return {
     id: venue.id,
+    venueGroupId: venue.venue_group_id,
     name: venue.name,
     venueDetails: venue.venue_details,
     category: venue.category,
@@ -63,12 +64,12 @@ export async function getVenuesApplication(vendorId, applicationId) {
     pincode: venue.pincode,
     latitude: venue.latitude,
     longitude: venue.longitude,
+    coverImageUrl: (await getPrivateUrl([venue.cover_image_key]))[0],
+    proofDocumentUrl: (await getPrivateUrl([venue.proof_document_key]))[0],
     status: venue.status,
     rejectionReason: venue.rejection_reason,
     submittedAt: venue.submitted_at,
     images: await getPrivateUrl(venue.images),
-    coverImageUrl: (await getPrivateUrl([venue.cover_image_key]))[0],
-    proofDocumentUrl: (await getPrivateUrl([venue.proof_document_key]))[0],
   };
 }
 

@@ -14,7 +14,11 @@ const router = express.Router();
 
 router.get('/venues', controller.getVenues);
 
-router.get('/venues/applications/status', controller.getVenuesApplicationStatus);
+router.get(
+  '/venues/applications/:applicationId',
+  validateSchema(schema.applicationId, 'params'),
+  controller.getVenuesApplication
+);
 
 router.get(
   '/venues/:venueId',
