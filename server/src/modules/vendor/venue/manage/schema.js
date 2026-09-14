@@ -103,14 +103,14 @@ export const hours = z
     path: ['closing_time'],
   });
 
-export const pricing = z.discriminatedUnion('booking_type', [
+export const booking = z.discriminatedUnion('bookingType', [
   z.object({
-    booking_type: z.literal('whole_day'),
+    bookingType: z.literal('whole_day'),
     pricing: z.array(wholeDayPricingSchema).min(1),
   }),
 
   z.object({
-    booking_type: z.literal('time_slot'),
+    bookingType: z.literal('time_slot'),
     pricing: z.array(timeSlotPricingSchema).min(1),
   }),
 ]);

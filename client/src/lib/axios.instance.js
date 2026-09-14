@@ -28,7 +28,21 @@ function onRefreshFailed(error) {
 }
 
 axiosInstance.interceptors.response.use(
-  (response) => response.data.data,
+  (response) => {
+    const payload = response.data;
+    const data = payload?.data;
+
+    if (data && typeof data === "object") {
+      Object.defineProperty(data, "message", {
+        value: payload.message,
+        enumerable: false,
+        configurable: true,
+      });
+      return data;
+    }
+
+    return data ?? payload;
+  },
 
   async (error) => {
     const { response, config } = error;

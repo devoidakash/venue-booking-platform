@@ -143,6 +143,8 @@ export default function VenueManagementPage() {
   const [venue, setVenue] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [successSection, setSuccessSection] = useState("");
   const [galleryFiles, setGalleryFiles] = useState([]);
   const [removedGalleryIndexes, setRemovedGalleryIndexes] = useState([]);
   const [galleryError, setGalleryError] = useState("");
@@ -167,6 +169,7 @@ export default function VenueManagementPage() {
   const [pricingEditing, setPricingEditing] = useState(false);
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingError, setPricingError] = useState("");
+  const [statusEditing, setStatusEditing] = useState(false);
 
   const fetchVenue = useCallback(async () => {
     setLoading(true);
@@ -261,9 +264,18 @@ export default function VenueManagementPage() {
     }
 
     setGalleryError("");
+    setSuccessMessage("");
     setGallerySaving(true);
     try {
-      await uploadVenueImages(venueId, galleryFiles, deleteIds);
+      const response = await uploadVenueImages(
+        venueId,
+        galleryFiles,
+        deleteIds,
+      );
+      setSuccessMessage(
+        response?.message || "Gallery images updated successfully.",
+      );
+      setSuccessSection("gallery");
       setGalleryFiles([]);
       setRemovedGalleryIndexes([]);
       setIsEditingGallery(false);
@@ -284,8 +296,13 @@ export default function VenueManagementPage() {
 
     setCoverSaving(true);
     setCoverError("");
+    setSuccessMessage("");
     try {
-      await uploadVenueCover(venueId, file);
+      const response = await uploadVenueCover(venueId, file);
+      setSuccessMessage(
+        response?.message || "Cover image updated successfully.",
+      );
+      setSuccessSection("cover");
       await fetchVenue();
     } catch (err) {
       setCoverError(
@@ -299,8 +316,13 @@ export default function VenueManagementPage() {
   async function saveDescription() {
     setDescriptionSaving(true);
     setDescriptionError("");
+    setSuccessMessage("");
     try {
-      await updateVenueDescription(venueId, descriptionValue);
+      const response = await updateVenueDescription(venueId, descriptionValue);
+      setSuccessMessage(
+        response?.message || "Description updated successfully.",
+      );
+      setSuccessSection("description");
       setDescriptionEditing(false);
       setVenue((current) =>
         current ? { ...current, description: descriptionValue } : current,
@@ -317,11 +339,16 @@ export default function VenueManagementPage() {
   async function saveHours() {
     setHoursSaving(true);
     setHoursError("");
+    setSuccessMessage("");
     try {
-      await updateVenueHours(venueId, {
+      const response = await updateVenueHours(venueId, {
         opening_time: normalizeTime(openingTime),
         closing_time: normalizeTime(closingTime),
       });
+      setSuccessMessage(
+        response?.message || "Operating hours updated successfully.",
+      );
+      setSuccessSection("hours");
       setHoursEditing(false);
       setVenue((current) =>
         current ? { ...current, openingTime, closingTime } : current,
@@ -338,12 +365,18 @@ export default function VenueManagementPage() {
   async function saveStatus() {
     setStatusSaving(true);
     setStatusError("");
+    setSuccessMessage("");
 
     try {
-      await updateVenueStatus(venueId, statusValue);
+      const response = await updateVenueStatus(venueId, statusValue);
+      setSuccessMessage(
+        response?.message || "Venue status updated successfully.",
+      );
+      setSuccessSection("status");
       setVenue((current) =>
         current ? { ...current, status: statusValue } : current,
       );
+      setStatusEditing(false);
     } catch (err) {
       setStatusError(
         err?.response?.data?.message || "Could not update venue status.",
@@ -393,11 +426,16 @@ export default function VenueManagementPage() {
 
     setPricingSaving(true);
     setPricingError("");
+    setSuccessMessage("");
     try {
-      await updateVenuePricing(venueId, {
-        booking_type: pricingBookingType,
+      const response = await updateVenuePricing(venueId, {
+        bookingType: pricingBookingType,
         pricing,
       });
+      setSuccessMessage(
+        response?.message || "Venue pricing updated successfully.",
+      );
+      setSuccessSection("pricing");
       setPricingEditing(false);
       setVenue((current) =>
         current
@@ -503,6 +541,11 @@ export default function VenueManagementPage() {
               {galleryError && (
                 <p className="mb-4 text-sm font-medium text-rose-600">
                   {galleryError}
+                </p>
+              )}
+              {successSection === "gallery" && successMessage && (
+                <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                  {successMessage}
                 </p>
               )}
               {venue.imageUrls?.length || galleryFiles.length ? (
@@ -664,6 +707,11 @@ export default function VenueManagementPage() {
                     {coverError}
                   </p>
                 )}
+                {successSection === "cover" && successMessage && (
+                  <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                    {successMessage}
+                  </p>
+                )}
               </SectionCard>
 
               <div className="space-y-6 lg:col-span-9">
@@ -721,6 +769,11 @@ export default function VenueManagementPage() {
                   {descriptionError && (
                     <p className="mt-3 text-sm font-medium text-rose-600">
                       {descriptionError}
+                    </p>
+                  )}
+                  {successSection === "description" && successMessage && (
+                    <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                      {successMessage}
                     </p>
                   )}
                 </SectionCard>
@@ -814,139 +867,181 @@ export default function VenueManagementPage() {
                           {hoursError}
                         </p>
                       )}
+                      {successSection === "hours" && successMessage && (
+                        <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                          {successMessage}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </SectionCard>
               </div>
             </div>
 
-            <SectionCard
-              title="Pricing Info"
-              action={
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (pricingEditing) {
-                      void savePricing();
-                    } else {
-                      setPricingEditing(true);
-                    }
-                  }}
-                  disabled={pricingSaving}
-                  className={`gap-1.5 rounded-xl ${
-                    pricingEditing
-                      ? "border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
-                      : "border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
-                  }`}
-                >
-                  {pricingEditing ? (
-                    <>
-                      <Save className="h-4 w-4" />
-                      {pricingSaving ? "Saving..." : "Save"}
-                    </>
-                  ) : (
-                    <>
-                      <Pencil className="h-3.5 w-3.5" />
-                      Edit
-                    </>
-                  )}
-                </Button>
-              }
-              className="order-4"
-            >
-              <div className="mb-4 flex flex-wrap items-center gap-3">
-                <select
-                  value={pricingBookingType}
-                  onChange={(event) =>
-                    changePricingBookingType(event.target.value)
-                  }
-                  disabled={!pricingEditing || pricingSaving}
-                  className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
-                >
-                  <option value="whole_day">Whole Day</option>
-                  <option value="time_slot">Time Slot</option>
-                </select>
-              </div>
-              <div className="overflow-hidden rounded-2xl border border-slate-200">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                    <tr>
-                      <th className="px-5 py-3 font-semibold">Day Type</th>
-                      {pricingBookingType === "time_slot" && (
-                        <th className="px-5 py-3 font-semibold">Duration</th>
-                      )}
-                      <th className="px-5 py-3 font-semibold">Price</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {pricingRows.map((item, index) => (
-                      <tr key={item.day_type}>
-                        <td className="px-5 py-4 font-medium capitalize text-slate-700">
-                          {item.day_type}
-                        </td>
-                        {pricingBookingType === "time_slot" && (
-                          <td className="px-5 py-4">60 min</td>
-                        )}
-                        <td className="px-5 py-4 font-semibold text-slate-900">
-                          {pricingEditing ? (
-                            <input
-                              type="number"
-                              min="1"
-                              value={item.price}
-                              onChange={(event) =>
-                                updatePricingRow(
-                                  index,
-                                  "price",
-                                  event.target.value,
-                                )
-                              }
-                              className="h-9 w-32 rounded-lg border border-slate-200 px-2 text-sm outline-none focus:border-indigo-400"
-                            />
-                          ) : (
-                            item.price
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              {pricingError && (
-                <p className="mt-3 text-sm font-medium text-rose-600">
-                  {pricingError}
-                </p>
-              )}
-            </SectionCard>
-
-            <SectionCard title="Venue Status" className="order-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <label className="flex w-full max-w-sm flex-col gap-2 text-sm font-semibold text-slate-700">
-                  Status
-                  <select
-                    value={statusValue}
-                    onChange={(event) => setStatusValue(event.target.value)}
-                    disabled={statusSaving}
-                    className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            <div className="order-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <SectionCard
+                title="Pricing Info"
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (pricingEditing) {
+                        void savePricing();
+                      } else {
+                        setPricingEditing(true);
+                      }
+                    }}
+                    disabled={pricingSaving}
+                    className={`gap-1.5 rounded-xl ${
+                      pricingEditing
+                        ? "border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                        : "border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                    }`}
                   >
-                    <option value="draft">Draft</option>
-                    <option value="live">Live</option>
+                    {pricingEditing ? (
+                      <>
+                        <Save className="h-4 w-4" />
+                        {pricingSaving ? "Saving..." : "Save"}
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit
+                      </>
+                    )}
+                  </Button>
+                }
+              >
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                  <select
+                    value={pricingBookingType}
+                    onChange={(event) =>
+                      changePricingBookingType(event.target.value)
+                    }
+                    disabled={!pricingEditing || pricingSaving}
+                    className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                  >
+                    <option value="whole_day">Whole Day</option>
+                    <option value="time_slot">Time Slot</option>
                   </select>
-                </label>
-                <Button
-                  onClick={saveStatus}
-                  disabled={statusSaving || !statusValue}
-                  className="rounded-xl bg-emerald-600 text-white hover:bg-emerald-700"
-                >
-                  {statusSaving ? "Saving..." : "Save Status"}
-                </Button>
-              </div>
-              {statusError && (
-                <p className="mt-3 text-sm font-medium text-rose-600">
-                  {statusError}
-                </p>
-              )}
-            </SectionCard>
+                </div>
+                <div className="overflow-hidden rounded-2xl border border-slate-200">
+                  <table className="w-full text-left text-sm">
+                    <thead className="bg-slate-50 text-xs uppercase text-slate-500">
+                      <tr>
+                        <th className="px-5 py-3 font-semibold">Day Type</th>
+                        {pricingBookingType === "time_slot" && (
+                          <th className="px-5 py-3 font-semibold">Duration</th>
+                        )}
+                        <th className="px-5 py-3 font-semibold">Price</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {pricingRows.map((item, index) => (
+                        <tr key={item.day_type}>
+                          <td className="px-5 py-4 font-medium capitalize text-slate-700">
+                            {item.day_type}
+                          </td>
+                          {pricingBookingType === "time_slot" && (
+                            <td className="px-5 py-4">60 min</td>
+                          )}
+                          <td className="px-5 py-4 font-semibold text-slate-900">
+                            {pricingEditing ? (
+                              <input
+                                type="number"
+                                min="1"
+                                value={item.price}
+                                onChange={(event) =>
+                                  updatePricingRow(
+                                    index,
+                                    "price",
+                                    event.target.value,
+                                  )
+                                }
+                                className="h-9 w-32 rounded-lg border border-slate-200 px-2 text-sm outline-none focus:border-indigo-400"
+                              />
+                            ) : (
+                              item.price
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {pricingError && (
+                  <p className="mt-3 text-sm font-medium text-rose-600">
+                    {pricingError}
+                  </p>
+                )}
+                {successSection === "pricing" && successMessage && (
+                  <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                    {successMessage}
+                  </p>
+                )}
+              </SectionCard>
+
+              <SectionCard
+                title="Venue Status"
+                action={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (statusEditing) {
+                        void saveStatus();
+                      } else {
+                        setStatusEditing(true);
+                      }
+                    }}
+                    disabled={statusSaving}
+                    className={`gap-1.5 rounded-xl ${
+                      statusEditing
+                        ? "border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
+                        : "border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                    }`}
+                  >
+                    {statusEditing ? (
+                      <>
+                        <Save className="h-4 w-4" />
+                        {statusSaving ? "Saving..." : "Save"}
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="h-3.5 w-3.5" />
+                        Edit
+                      </>
+                    )}
+                  </Button>
+                }
+              >
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                  <label className="flex w-full max-w-sm flex-col gap-2 text-sm font-semibold text-slate-700">
+                    Status
+                    <select
+                      value={statusValue}
+                      onChange={(event) => setStatusValue(event.target.value)}
+                      disabled={!statusEditing || statusSaving}
+                      className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-900 outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="live">Live</option>
+                    </select>
+                  </label>
+                </div>
+                {statusError && (
+                  <p className="mt-3 text-sm font-medium text-rose-600">
+                    {statusError}
+                  </p>
+                )}
+                {successSection === "status" && successMessage && (
+                  <p className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                    {successMessage}
+                  </p>
+                )}
+              </SectionCard>
+            </div>
           </div>
         </>
       )}

@@ -39,10 +39,11 @@ export async function processSubmission(vendorId, data, files) {
 
     if (data.venueGroupId) {
       const result = await findVenueGroupId(vendorId, data.venueGroupId);
-      if (!result || !result.venue_group_id) {
+
+      if (!result) {
         throw new ApiError(ERROR_CONFIG.NO_EXISTING_VENUE_FOUND);
       }
-      venueGroupId = result.venue_group_id;
+      venueGroupId = result;
     } else {
       venueGroupId = randomUUID();
     }

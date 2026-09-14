@@ -245,7 +245,7 @@ export async function updateVenuePricing(vendorId, venueId, data) {
     const venue = await repository.updateBookingType(client, {
       vendorId,
       venueId,
-      bookingType: data.booking_type,
+      bookingType: data.bookingType,
     });
 
     if (!venue) {
@@ -254,7 +254,7 @@ export async function updateVenuePricing(vendorId, venueId, data) {
 
     await repository.deleteVenuePricing(client, venueId);
 
-    if (data.booking_type === 'whole_day') {
+    if (data.bookingType === 'whole_day') {
       await repository.insertWholeDayPricing(client, venueId, data.pricing);
     } else {
       await repository.insertTimeSlotPricing(client, venueId, data.pricing);
@@ -271,6 +271,7 @@ export async function updateVenueStatus(vendorId, venueId, status) {
     return;
   }
   const errors = [];
+
   const venue = await repository.fetchVenue(vendorId, venueId);
   if (!venue) {
     throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);

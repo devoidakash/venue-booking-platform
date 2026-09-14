@@ -61,7 +61,7 @@ router.patch(
 router.patch(
   '/venues/:venueId/pricing',
   validateSchema(schema.venueId, 'params'),
-  validateSchema(schema.pricing),
+  validateSchema(schema.booking),
   controller.updateVenuePricing
 );
 

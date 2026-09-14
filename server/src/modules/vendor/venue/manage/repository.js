@@ -13,10 +13,22 @@ export async function featchVenues(vendorId) {
 export async function fetchVenuesApplicationStatus(vendorId) {
   const result = await pool.query(
     `
-  SELECT DISTINCT ON (venue_group_id) id, name, category, district, state, status, cover_image_key, submitted_at 
-  FROM venue_applications 
-  WHERE vendor_id = $1 AND status IN ('pending', 'rejected')
-  ORDER BY venue_group_id, submitted_at DESC`,
+  SELECT id, name, category, district, state, status, cover_image_key, submitted_at
+FROM (
+    SELECT DISTINCT ON (venue_group_id)
+        id,
+        name,
+        category,
+        district,
+        state,
+        status,
+        cover_image_key,
+        submitted_at
+    FROM venue_applications
+    WHERE vendor_id = $1
+    ORDER BY venue_group_id, submitted_at DESC
+) latest
+WHERE status IN ('pending', 'rejected');`,
     [vendorId]
   );
   return result.rows;
@@ -149,7 +161,7 @@ export async function updateBookingType(client, data) {
   const result = await client.query(
     `
     UPDATE venues SET booking_type = $1 WHERE id = $2 AND vendor_id = $3 AND suspension_reason IS NULL RETURNING id`,
-    [data.booking_type, data.venueId, data.vendorId]
+    [data.bookingType, data.venueId, data.vendorId]
   );
   return result.rows[0]?.id ?? null;
 }
