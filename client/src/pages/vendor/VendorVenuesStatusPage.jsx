@@ -110,6 +110,7 @@ function getStatusMeta(status) {
 
 function withCacheBust(url, token) {
   if (!url) return url;
+  if (url.includes("X-Amz-Signature=")) return url;
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}_cb=${token}`;
 }
