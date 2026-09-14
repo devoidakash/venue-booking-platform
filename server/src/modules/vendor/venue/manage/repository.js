@@ -10,6 +10,39 @@ export async function featchVenues(vendorId) {
   return result.rows;
 }
 
+export async function fetchVenuesApplicationStatus(vendorId) {
+  const result = await pool.query(
+    `
+  SELECT DISTINCT ON (venue_group_id) id, name, category, district, state, status, cover_image_key, submitted_at 
+  FROM venue_applications 
+  WHERE vendor_id = $1 AND status IN ('pending', 'rejected')
+  ORDER BY venue_group_id, submitted_at DESC`,
+    [vendorId]
+  );
+  return result.rows;
+}
+
+export async function fetchVenueApplication(vendorId, applicationId) {
+  const result = await pool.query(
+    `
+    SELECT *
+    FROM (
+      SELECT DISTINCT ON (venue_group_id)
+        id, venue_group_id, name, venue_details, category, address, district, state, pincode,
+        ST_Y(geo_loc::geometry) AS latitude,
+        ST_X(geo_loc::geometry) AS longitude,
+        images, status, cover_image_key, proof_document_key, rejection_reason, submitted_at
+      FROM venue_applications
+      WHERE vendor_id = $1 AND id = $2 
+      ORDER BY venue_group_id, submitted_at DESC
+    ) AS latest_per_group
+    WHERE status IN ('pending', 'rejected')
+    `,
+    [vendorId, applicationId]
+  );
+  return result.rows[0] ?? null;
+}
+
 export async function fetchVenue(vendorId, venueId) {
   const result = await pool.query(
     `SELECT id, name, description, category, address, district, state, pincode, ST_Y(geo_loc::geometry) AS latitude, ST_X(geo_loc::geometry) AS longitude, has_cover_image, images, booking_type, opening_time, closing_time, status, suspension_reason, created_at FROM venues WHERE id = $1 AND vendor_id = $2`,
@@ -218,25 +251,4 @@ export async function insertIntoVenueReverification(client, data) {
   );
 
   return result.rows[0];
-}
-
-export async function fetchVenueApplications(vendorId) {
-  const result = await pool.query(
-    `
-    SELECT *
-    FROM (
-      SELECT DISTINCT ON (venue_group_id)
-        id, venue_group_id, name, venue_details, category, address, district, state, pincode,
-        ST_Y(geo_loc::geometry) AS latitude,
-        ST_X(geo_loc::geometry) AS longitude,
-        images, status, proof_document_key, rejection_reason, submitted_at
-      FROM venue_applications
-      WHERE vendor_id = $1
-      ORDER BY venue_group_id, submitted_at DESC
-    ) AS latest_per_group
-    WHERE status IN ('pending', 'rejected')
-    `,
-    [vendorId]
-  );
-  return result.rows;
 }

@@ -181,7 +181,7 @@ function VenueCard({ venue, onClick }) {
       className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/5 cursor-pointer text-left"
     >
       {/* Top Banner / Cover */}
-      <div className="relative aspect-video w-full overflow-hidden bg-slate-100">
+      <div className="relative aspect-3/4 w-full overflow-hidden bg-slate-100">
         {showImage ? (
           <img
             src={venue.coverImageUrl}
@@ -242,7 +242,7 @@ function VenueCard({ venue, onClick }) {
 function VenueCardSkeleton() {
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-      <Skeleton className="aspect-video w-full rounded-none" />
+      <Skeleton className="aspect-3/4 w-full rounded-none" />
       <div className="space-y-3 p-5">
         <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-4 w-1/2" />

@@ -26,8 +26,8 @@ const reverificationSchema = z.object({
 const timeSchema = z
   .string()
   .trim()
-  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'Invalid time format',
+  .regex(/^([01]\d|2[0-3]):00$/, {
+    message: 'Operation time must use a full hour (HH:00)',
   });
 
 const wholeDayPricingSchema = z.object({
@@ -40,93 +40,95 @@ const timeSlotPricingSchema = z.object({
   duration_minutes: z
     .number()
     .int()
-    .refine((value) => [30, 60, 90, 120, 150, 180, 210].includes(value), {
+    .refine((value) => [60].includes(value), {
       message: 'Invalid duration time',
     }),
   price: z.number().int().positive(),
 });
 
-const schema = {
-  venueId: z.object({
-    venueId: z.string().trim().uuid({
-      message: 'Invalid venue id',
-    }),
+export const applicationId = z.object({
+  applicationId: z.string().trim().uuid({
+    message: 'Invalid application id',
+  }),
+});
+
+export const venueId = z.object({
+  venueId: z.string().trim().uuid({
+    message: 'Invalid venue id',
+  }),
+});
+
+export const deleteIds = z.object({
+  deleteIds: z.preprocess(
+    (value) => {
+      if (typeof value !== 'string') {
+        return value;
+      }
+
+      try {
+        return JSON.parse(value);
+      } catch {
+        return value;
+      }
+    },
+
+    z
+      .array(
+        z.string().trim().uuid({
+          message: 'Invalid image id',
+        })
+      )
+      .max(10)
+      .refine((ids) => new Set(ids).size === ids.length, {
+        message: 'Duplicate image ids are not allowed',
+      })
+  ),
+});
+
+export const description = z.object({
+  description: z
+    .string()
+    .trim()
+    .min(10, 'Description must be at least 10 characters')
+    .max(1000, 'Description must not exceed 1000 characters'),
+});
+
+export const hours = z
+  .object({
+    opening_time: timeSchema,
+    closing_time: timeSchema,
+  })
+  .refine(({ opening_time, closing_time }) => opening_time < closing_time, {
+    message: 'Opening time must be before closing time',
+    path: ['closing_time'],
+  });
+
+export const pricing = z.discriminatedUnion('booking_type', [
+  z.object({
+    booking_type: z.literal('whole_day'),
+    pricing: z.array(wholeDayPricingSchema).min(1),
   }),
 
-  deleteIds: z.object({
-    deleteIds: z.preprocess(
-      (value) => {
-        if (typeof value !== 'string') {
-          return value;
-        }
+  z.object({
+    booking_type: z.literal('time_slot'),
+    pricing: z.array(timeSlotPricingSchema).min(1),
+  }),
+]);
 
-        try {
-          return JSON.parse(value);
-        } catch {
-          return value;
-        }
-      },
+export const reverification = reverificationSchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: 'At least one field is required for reverification',
+  });
 
-      z
-        .array(
-          z.string().trim().uuid({
-            message: 'Invalid image id',
-          })
-        )
-        .max(10)
-        .refine((ids) => new Set(ids).size === ids.length, {
-          message: 'Duplicate image ids are not allowed',
-        })
+export const status = z.object({
+  status: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(
+      z.enum(['draft', 'live'], {
+        message: 'Status must be either draft or live',
+      })
     ),
-  }),
-
-  description: z.object({
-    description: z
-      .string()
-      .trim()
-      .min(10, 'Description must be at least 10 characters')
-      .max(1000, 'Description must not exceed 1000 characters'),
-  }),
-
-  hours: z
-    .object({
-      opening_time: timeSchema,
-      closing_time: timeSchema,
-    })
-    .refine(({ opening_time, closing_time }) => opening_time < closing_time, {
-      message: 'Opening time must be before closing time',
-      path: ['closing_time'],
-    }),
-
-  pricing: z.discriminatedUnion('booking_type', [
-    z.object({
-      booking_type: z.literal('whole_day'),
-      pricing: z.array(wholeDayPricingSchema).min(1),
-    }),
-
-    z.object({
-      booking_type: z.literal('time_slot'),
-      pricing: z.array(timeSlotPricingSchema).min(1),
-    }),
-  ]),
-
-  reverification: reverificationSchema
-    .partial()
-    .refine((data) => Object.keys(data).length > 0, {
-      message: 'At least one field is required for reverification',
-    }),
-
-  status: z.object({
-    status: z
-      .string()
-      .trim()
-      .toLowerCase()
-      .pipe(
-        z.enum(['draft', 'live'], {
-          message: 'Status must be either draft or live',
-        })
-      ),
-  }),
-};
-
-export default schema;
+});

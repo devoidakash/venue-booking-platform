@@ -8,6 +8,14 @@ export async function getVenues(req, res) {
   });
 }
 
+export async function getVenuesApplicationStatus(req, res) {
+  const data = await service.getVenuesApplicationStatus(req.vendor.id);
+  res.status(200).json({
+    success: true,
+    data,
+  });
+}
+
 export async function getVenueDetails(req, res) {
   const data = await service.getVenueDetails(req.vendor.id, req.params.venueId);
   res.status(200).json({
@@ -87,14 +95,6 @@ export async function updateReverificationDetails(req, res) {
   res.status(201).json({
     success: true,
     message: 'Venue changes submitted for re-verification',
-    data,
-  });
-}
-
-export async function getVenuesApplications(req, res) {
-  const data = await service.getVenuesApplications(req.vendor.id);
-  res.status(200).json({
-    success: true,
     data,
   });
 }

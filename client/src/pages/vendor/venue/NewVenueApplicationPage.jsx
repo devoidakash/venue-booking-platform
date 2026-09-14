@@ -63,7 +63,7 @@ const CATEGORIES = [
   },
 ];
 
-export default function VendorVenueApplicationPage() {
+export default function NewVenueAppllicationPage() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -384,21 +384,35 @@ export default function VendorVenueApplicationPage() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Section 3: Media Uploads */}
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs">
-            <div className="mt-6 border-t border-slate-100 pt-5">
+            <div className="mb-5 flex items-center gap-2 border-b border-slate-100 pb-4">
+              <ImageIcon className="h-5 w-5 text-indigo-600" />
+              <h2 className="text-base font-bold text-slate-900">
+                Cover Image
+              </h2>
+            </div>
+            <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Cover Image (Required)
+                Required only for verification
               </label>
-              <label className="mt-2 flex h-28 w-full cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 transition-colors hover:border-indigo-400 hover:bg-indigo-50/20">
+              <label
+                className={`relative mt-2 flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/20 sm:w-56 ${
+                  coverImage ? "overflow-hidden p-0" : "p-4"
+                }`}
+              >
                 {coverImage ? (
                   <img
                     src={URL.createObjectURL(coverImage)}
                     alt="Cover preview"
-                    className="h-20 w-28 rounded-lg object-cover"
+                    className="absolute inset-0 h-full w-full object-cover"
                   />
                 ) : (
                   <Upload className="h-7 w-7 text-slate-400" />
                 )}
-                <span className="text-xs font-semibold text-slate-700">
+                <span
+                  className={`relative z-10 text-xs font-semibold text-slate-700 ${
+                    coverImage ? "rounded-md bg-white/85 px-2 py-1" : "mt-2"
+                  }`}
+                >
                   {coverImage ? "Change Cover Image" : "Select Cover Image"}
                 </span>
                 <input
@@ -420,13 +434,35 @@ export default function VendorVenueApplicationPage() {
               </h2>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <label className="flex h-36 w-full sm:w-64 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/20">
-                <FileText className="h-7 w-7 text-slate-400" />
-                <span className="mt-2 text-xs font-semibold text-slate-700">
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
+              <label
+                className={`relative flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 text-center transition-colors hover:border-indigo-400 hover:bg-indigo-50/20 sm:w-56 ${
+                  proofDocument ? "overflow-hidden p-0" : "p-4"
+                }`}
+              >
+                {proofDocument ? (
+                  <img
+                    src={URL.createObjectURL(proofDocument)}
+                    alt="Proof preview"
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                ) : (
+                  <FileText className="h-7 w-7 text-slate-400" />
+                )}
+                <span
+                  className={`relative z-10 text-xs font-semibold text-slate-700 ${
+                    proofDocument ? "rounded-md bg-white/85 px-2 py-1" : "mt-2"
+                  }`}
+                >
                   {proofDocument ? "Change Document" : "Select Proof File"}
                 </span>
-                <span className="text-[10px] text-slate-400">JPEG, PNG</span>
+                <span
+                  className={`relative z-10 text-[10px] text-slate-400 ${
+                    proofDocument ? "rounded-md bg-white/85 px-2" : ""
+                  }`}
+                >
+                  JPEG, PNG
+                </span>
                 <input
                   type="file"
                   accept="image/jpeg,image/png"
@@ -434,33 +470,6 @@ export default function VendorVenueApplicationPage() {
                   className="hidden"
                 />
               </label>
-
-              {proofDocument && (
-                <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                  <div className="h-12 w-12 overflow-hidden rounded-lg bg-slate-200">
-                    <img
-                      src={URL.createObjectURL(proofDocument)}
-                      alt="Proof Preview"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <div className="text-left">
-                    <p className="max-w-200px truncate text-xs font-semibold text-slate-800">
-                      {proofDocument.name}
-                    </p>
-                    <p className="text-[10px] text-slate-400">
-                      {(proofDocument.size / 1024).toFixed(1)} KB
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setProofDocument(null)}
-                    className="rounded-md p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>

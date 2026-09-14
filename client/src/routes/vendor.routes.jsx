@@ -4,9 +4,10 @@ import VendorApplyPage from "@/pages/vendor/VendorApplyPage";
 import VendorDashboardPage from "@/pages/vendor/VendorDashboardPage";
 import VendorOveriviewPage from "@/pages/vendor/VendorOverviewPage";
 import VendorProfilePage from "@/pages/vendor/VendorProfilePage";
-import VendorVenueApplicationPage from "@/pages/vendor/venue/VenueApplicationPage";
+import NewVenueAppllicationPage from "@/pages/vendor/venue/NewVenueApplicationPage";
 import VenueManagementPage from "@/pages/vendor/venue/VenueManagementPage";
-import VendorVenuesPage from "@/pages/vendor/VendorVenuesPage";
+import VendorVenuesPage from "@/pages/vendor/VendorVenuesStatusPage";
+import VenueApplicationStatusPage from "@/pages/vendor/venue/VenueApplicationStatusPage";
 
 export const vendorRoutes = [
   {
@@ -33,11 +34,15 @@ export const vendorRoutes = [
       },
       {
         path: "venues/new",
-        element: <VendorVenueApplicationPage />,
+        element: <NewVenueAppllicationPage />,
       },
       {
         path: "venues/:id",
         element: <VenueManagementPage />,
+      },
+      {
+        path: "venues/application/status",
+        element: <VenueApplicationStatusPage />,
       },
     ],
   },

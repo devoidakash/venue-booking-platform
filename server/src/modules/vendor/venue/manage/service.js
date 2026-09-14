@@ -1,6 +1,10 @@
 import { pool } from '../../../../infrastructure/database/db.js';
 import ApiError from '../../../../utils/api.error.js';
-import { getFromCloudinary } from '../../../../utils/cloudinary.storage.js';
+import {
+  deleteFromCloudinary,
+  getFromCloudinary,
+  uploadToCloudinary,
+} from '../../../../utils/cloudinary.storage.js';
 import { getPrivateUrl } from '../../../../utils/r2.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
 import ERROR_CONFIG from './error.config.js';
@@ -24,6 +28,50 @@ export async function getVenues(vendorId) {
   );
 }
 
+export async function getVenuesApplicationStatus(vendorId, status) {
+  const applications = await repository.fetchVenuesApplicationStatus(vendorId);
+
+  return Promise.all(
+    applications.map(async (application) => ({
+      id: application.id,
+      name: application.name,
+      category: application.category,
+      district: application.district,
+      state: application.state,
+      status: application.status,
+      coverImageUrl: (await getPrivateUrl([application.cover_image_key]))[0],
+      submittedAt: application.submitted_at,
+    }))
+  );
+}
+
+export async function getVenuesApplication(vendorId, applicationId) {
+  const venue = await repository.fetchVenueApplication(vendorId, applicationId);
+
+  if (!venue) {
+    throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);
+  }
+
+  return {
+    id: venue.id,
+    name: venue.name,
+    venueDetails: venue.venue_details,
+    category: venue.category,
+    address: venue.address,
+    district: venue.district,
+    state: venue.state,
+    pincode: venue.pincode,
+    latitude: venue.latitude,
+    longitude: venue.longitude,
+    status: venue.status,
+    rejectionReason: venue.rejection_reason,
+    submittedAt: venue.submitted_at,
+    images: await getPrivateUrl(venue.images),
+    coverImageUrl: (await getPrivateUrl([venue.cover_image_key]))[0],
+    proofDocumentUrl: (await getPrivateUrl([venue.proof_document_key]))[0],
+  };
+}
+
 export async function getVenueDetails(vendorId, venueId) {
   const venue = await repository.fetchVenue(vendorId, venueId);
 
@@ -37,6 +85,7 @@ export async function getVenueDetails(vendorId, venueId) {
   const coverImageId = `venues/${vendorId}/${venueId}/cover_image`;
   const [coverImageUrl] = await getFromCloudinary([coverImageId]);
   const imageUrls = await getFromCloudinary(venue.images ?? []);
+  const pricing = await repository.getVenuePricing(venueId);
 
   return {
     venue: {
@@ -53,6 +102,7 @@ export async function getVenueDetails(vendorId, venueId) {
       bookingType: venue.booking_type,
       openingTime: venue.opening_time,
       closingTime: venue.closing_time,
+      pricing,
       status: venue.status,
       suspensionReason: venue.suspension_reason,
       createdAt: venue.created_at,
@@ -325,29 +375,4 @@ export async function updateReverificationDetails(vendorId, venueId, data) {
       throw err;
     }
   });
-}
-
-export async function getVenuesApplications(vendorId) {
-  const venues = await repository.fetchVenueApplications(vendorId);
-  return Promise.all(
-    venues.map(async (venue) => {
-      return {
-        id: venue.id,
-        name: venue.name,
-        venueDetails: venue.venue_details,
-        category: venue.category,
-        address: venue.address,
-        district: venue.district,
-        state: venue.state,
-        pincode: venue.pincode,
-        latitude: venue.latitude,
-        longitude: venue.longitude,
-        status: venue.status,
-        rejectionReason: venue.rejection_reason,
-        submittedAt: venue.submitted_at,
-        images: await getPrivateUrl(venue.images),
-        proofDocumentUrl: (await getPrivateUrl([venue.proof_document_key]))[0],
-      };
-    })
-  );
 }
