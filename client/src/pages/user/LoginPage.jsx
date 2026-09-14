@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import {
   Loader2,
   CheckCircle2,
 } from "lucide-react";
-import { requestOtp, verifyOtp } from "@/api/user.api";
+import { getMe, requestOtp, verifyOtp } from "@/api/user.api";
 
 export default function LoginForm() {
   const [searchParams] = useSearchParams();
@@ -26,6 +26,21 @@ export default function LoginForm() {
 
   const otp = otpDigits.join("");
   const inputRefs = useRef([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkAuthenticatedUser() {
+      await getMe();
+      if (isMounted) navigate("/", { replace: true });
+    }
+
+    checkAuthenticatedUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   const handleOtpChange = (index, value) => {
     if (!/^\d*$/.test(value)) return;

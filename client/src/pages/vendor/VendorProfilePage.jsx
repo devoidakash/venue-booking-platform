@@ -13,13 +13,11 @@ import {
   AlertTriangle,
   Ban,
   ShieldCheck,
-  ExternalLink,
   Eye,
   User,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVendorProfile } from "@/api/vendor.api";
 
@@ -370,21 +368,6 @@ export default function VendorProfilePage() {
                 )}
               </div>
             </div>
-
-            {panDocumentUrl && (
-              <div className="mt-6 pt-4 border-t border-slate-100">
-                <Button
-                  variant="outline"
-                  className="w-full gap-2 rounded-xl text-slate-700 hover:bg-slate-50"
-                  asChild
-                >
-                  <a href={panDocumentUrl} target="_blank" rel="noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                    Open Original Document
-                  </a>
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </div>
