@@ -1,115 +1,14 @@
 import { useEffect, useState } from "react";
-import {
-  AlertTriangle,
-  Building2,
-  CalendarDays,
-  Clock3,
-  Flag,
-  Gamepad2,
-  Layers,
-  MapPin,
-  Mountain,
-  Waves,
-} from "lucide-react";
+import { AlertTriangle, Clock3, Layers } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVenuesApplicationStatus } from "@/api/vendor.api";
-
-const CATEGORY_CONFIG = {
-  waterpark: { label: "Water Park", icon: Waves },
-  playzone: { label: "Play Zone", icon: Flag },
-  gamingzone: { label: "Gaming Zone", icon: Gamepad2 },
-  adventurepark: { label: "Adventure Park", icon: Mountain },
-};
-
-const STATUS_CONFIG = {
-  pending: {
-    label: "Pending Review",
-    className: "border-amber-200 bg-amber-50 text-amber-700",
-    dotClassName: "bg-amber-500",
-  },
-  rejected: {
-    label: "Rejected",
-    className: "border-rose-200 bg-rose-50 text-rose-700",
-    dotClassName: "bg-rose-500",
-  },
-};
+import VendorVenueStatusCard from "@/components/vendor/VendorVenueStatusCard";
 
 function withCacheBust(url, token) {
   if (!url) return url;
   const separator = url.includes("?") ? "&" : "?";
   return `${url}${separator}_cb=${token}`;
-}
-
-function normalizeKey(value = "") {
-  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-function formatSubmittedAt(value) {
-  if (!value) return "Submitted date unavailable";
-  return new Intl.DateTimeFormat("en-IN", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
-function ApplicationCard({ application }) {
-  const category = CATEGORY_CONFIG[normalizeKey(application.category)] || {
-    label: application.category || "Venue",
-    icon: Building2,
-  };
-  const status = STATUS_CONFIG[application.status] || STATUS_CONFIG.pending;
-  const CategoryIcon = category.icon;
-
-  return (
-    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-xl hover:shadow-indigo-500/5">
-      <div className="relative aspect-3/4 overflow-hidden bg-slate-100">
-        {application.coverImageUrl ? (
-          <img
-            src={application.coverImageUrl}
-            alt={application.name}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-slate-300">
-            <CategoryIcon className="h-12 w-12" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-linear-to-t from-black/45 via-transparent to-transparent" />
-        <div className="absolute inset-x-3.5 top-3.5 flex items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/60 bg-white/85 px-2.5 py-1 text-xs font-semibold text-slate-700 backdrop-blur-md">
-            <CategoryIcon className="h-3.5 w-3.5" />
-            {category.label}
-          </span>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold ${status.className}`}
-          >
-            <span
-              className={`h-1.5 w-1.5 rounded-full ${status.dotClassName}`}
-            />
-            {status.label}
-          </span>
-        </div>
-      </div>
-
-      <div className="p-5">
-        <h2 className="line-clamp-1 text-lg font-bold tracking-tight text-slate-900">
-          {application.name}
-        </h2>
-        <div className="mt-2.5 flex items-center gap-1.5 text-sm text-slate-500">
-          <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
-          <span className="truncate font-medium">
-            {application.district}, {application.state}
-          </span>
-        </div>
-        <div className="mt-3 flex items-center gap-1.5 border-t border-slate-100 pt-3 text-xs text-slate-400">
-          <CalendarDays className="h-3.5 w-3.5 shrink-0" />
-          Submitted {formatSubmittedAt(application.submittedAt)}
-        </div>
-      </div>
-    </article>
-  );
 }
 
 function ApplicationCardSkeleton() {
@@ -229,7 +128,10 @@ export default function VenueApplicationStatusPage() {
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {applications.map((application) => (
-            <ApplicationCard key={application.id} application={application} />
+            <VendorVenueStatusCard
+              key={application.id}
+              application={application}
+            />
           ))}
         </div>
       )}
