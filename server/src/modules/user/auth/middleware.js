@@ -23,11 +23,11 @@ export async function authenticateToken(req, res, next) {
     if (err instanceof jwt.TokenExpiredError) {
       throw new ApiError(USER_ERROR_CONFIG.TOKEN_EXPIRED);
     }
-    if (error instanceof jwt.JsonWebTokenError) {
+    if (err instanceof jwt.JsonWebTokenError) {
       throw new ApiError(USER_ERROR_CONFIG.INVALID_TOKEN);
     }
 
-    throw error;
+    throw err;
   }
 
   next();

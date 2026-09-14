@@ -5,6 +5,11 @@ const axiosInstance = axios.create({
   withCredentials: true,
 });
 
+const refreshAxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  withCredentials: true,
+});
+
 let isRefreshing = false;
 let refreshSubscribers = [];
 
@@ -31,18 +36,17 @@ axiosInstance.interceptors.response.use(
     if (!response) return Promise.reject(error);
 
     const code = response.data?.code;
-
-    if (config.skipAuthRedirect) {
-      return Promise.reject(error);
-    }
+    const skipAuthRedirect = config?.skipAuthRedirect;
 
     if (code === "SESSION_EXPIRED") {
-      window.location.href = "/login";
+      if (!skipAuthRedirect) window.location.href = "/login";
       return Promise.reject(error);
     }
 
     if (
-      (code === "ACCESS_TOKEN_MISSING" || code === "INVALID_TOKEN") &&
+      (code === "ACCESS_TOKEN_MISSING" ||
+        code === "INVALID_TOKEN" ||
+        code === "TOKEN_EXPIRED") &&
       !config._retry
     ) {
       config._retry = true;
@@ -55,21 +59,21 @@ axiosInstance.interceptors.response.use(
               return;
             }
 
-            resolve(axiosInstance(config));
+            resolve(axiosInstance({ ...config, withCredentials: true }));
           });
         });
       }
 
       isRefreshing = true;
       try {
-        await axiosInstance.post("/auth/refresh");
+        await refreshAxiosInstance.post("/auth/refresh");
         isRefreshing = false;
         onRefreshed();
-        return axiosInstance(config);
+        return axiosInstance({ ...config, withCredentials: true });
       } catch (refreshError) {
         isRefreshing = false;
         onRefreshFailed(refreshError);
-        window.location.href = "/login";
+        if (!skipAuthRedirect) window.location.href = "/login";
         return Promise.reject(refreshError);
       }
     }
