@@ -196,7 +196,7 @@ export default function VendorProfilePage() {
   return (
     <div className="w-full space-y-6">
       {/* Top Navigation */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+      <div>
         <Button
           variant="ghost"
           onClick={() => navigate("..", { relative: "path" })}
@@ -205,6 +205,14 @@ export default function VendorProfilePage() {
           <ArrowLeft className="h-4 w-4" />
           Back to Vendors
         </Button>
+        <div className="mt-2 rounded-2xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-7">
+          <h1 className="text-xl font-bold tracking-tight text-slate-900">
+            Vendor Profile
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Review vendor details, account status, and verification history.
+          </p>
+        </div>
       </div>
 
       {/* Suspension Alert */}
@@ -233,11 +241,11 @@ export default function VendorProfilePage() {
       {/* Hero Header Banner */}
       <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         {/* Decorative Background */}
-        <div className="absolute inset-0 h-32 bg-li-to-r from-indigo-500 via-purple-500 to-indigo-600 sm:h-40" />
+        <div className="absolute inset-0 h-24 bg-li-to-r from-indigo-500 via-purple-500 to-indigo-600 sm:h-32" />
 
-        <div className="relative px-6 pb-8 pt-20 sm:px-10 sm:pt-28">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-end">
+        <div className="relative px-6 pb-6 pt-16 sm:px-10 sm:pt-22">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
               {/* Avatar Profile */}
               <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl border-4 border-white bg-slate-900 text-3xl font-bold text-white shadow-md sm:h-32 sm:w-32 sm:text-4xl">
                 {getInitials(vendorName)}
