@@ -1,361 +1,617 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  Clock3,
-  XCircle,
-  AlertTriangle,
-  Building2,
-  MapPin,
+  ArrowLeft,
   FileText,
-  ExternalLink,
-  Eye,
-  Layers,
   Image as ImageIcon,
-  Compass,
+  Pencil,
+  Upload,
+  X,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { getVenuesApplication } from "@/api/vendor.api";
+import { getVenuesApplication, submitVenueApplication } from "@/api/vendor.api";
 
-const STATUS_MAP = {
-  pending: {
-    label: "Under Review",
-    badgeClass: "border-amber-200 bg-amber-50 text-amber-700",
-    dotClass: "bg-amber-500",
-    icon: Clock3,
-    description:
-      "Your application is in the queue awaiting compliance approval.",
-  },
-  rejected: {
-    label: "Rejected",
-    badgeClass: "border-rose-200 bg-rose-50 text-rose-700",
-    dotClass: "bg-rose-500",
-    icon: XCircle,
-    description: "Application was declined during compliance review.",
-  },
-};
+const STATES = [
+  "Andhra Pradesh",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Tamil Nadu",
+  "Telangana",
+];
 
-function formatTimestamp(iso) {
-  if (!iso) return "—";
-  try {
-    return new Intl.DateTimeFormat("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date(iso));
-  } catch {
-    return "—";
+const CATEGORIES = [
+  ["waterpark", "Water Park"],
+  ["amusement_park", "Amusement Park"],
+  ["playzone", "Play Zone"],
+  ["racing_zone", "Racing Zone"],
+  ["gaming_zone", "Gaming Zone"],
+];
+const EMPTY_IMAGES = [];
+
+function getStatusClass(status) {
+  if (status === "rejected") {
+    return "border-rose-200 bg-rose-50 text-rose-700";
   }
+  if (status === "pending") {
+    return "border-amber-200 bg-amber-50 text-amber-700";
+  }
+  if (status === "approved") {
+    return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  }
+  return "border-slate-200 bg-slate-50 text-slate-600";
 }
 
-function ApplicationCard({ item, onPreviewDoc }) {
-  const [selectedImage, setSelectedImage] = useState(null);
-  const statusCfg = STATUS_MAP[item.status] || STATUS_MAP.pending;
+function formatDate(value) {
+  if (!value) return "-";
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
+function Section({ title, action, children, className = "" }) {
+  return (
+    <section
+      className={`rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:p-8 ${className}`}
+    >
+      <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <h2 className="text-base font-bold text-slate-900">{title}</h2>
+        {action}
+      </div>
+      <div className="mt-5">{children}</div>
+    </section>
+  );
+}
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        {label}
+      </p>
+      <div className="mt-1.5 text-sm font-semibold text-slate-800">
+        {children || "-"}
+      </div>
+    </div>
+  );
+}
+
+function UploadTile({ title, file, onChange, multiple = false, children }) {
+  return (
+    <label className="relative flex h-48 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 p-4 text-center transition hover:border-indigo-400 hover:bg-indigo-50/30 sm:w-56">
+      {children || <Upload className="h-7 w-7 text-slate-400" />}
+      <span className="relative z-10 mt-2 rounded-md bg-white/85 px-2 py-1 text-xs font-semibold text-slate-700">
+        {file ? `Change ${title}` : `Select ${title}`}
+      </span>
+      <input
+        type="file"
+        accept="image/jpeg,image/png"
+        multiple={multiple}
+        onChange={onChange}
+        className="hidden"
+      />
+    </label>
+  );
+}
+
+async function urlToFile(url, filename) {
+  if (!url) return null;
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`Could not load ${filename}`);
+  const blob = await response.blob();
+  return new File([blob], filename, { type: blob.type || "image/jpeg" });
+}
+
+function ResubmitForm({ application, onCancel, onSuccess }) {
+  const [formData, setFormData] = useState({
+    name: application.name ?? "",
+    venueDetails: application.venueDetails ?? "",
+    category: application.category ?? "",
+    address: application.address ?? "",
+    district: application.district ?? "",
+    state: application.state ?? "",
+    pincode: application.pincode ?? "",
+    latitude: application.latitude ?? "",
+    longitude: application.longitude ?? "",
+  });
+  const [coverImage, setCoverImage] = useState(null);
+  const [proofDocument, setProofDocument] = useState(null);
+  const [venueImages, setVenueImages] = useState([]);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [loadingMedia, setLoadingMedia] = useState(true);
+  const existingVenueImages = application.images ?? EMPTY_IMAGES;
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function hydrateExistingMedia() {
+      try {
+        const [cover, proof, ...gallery] = await Promise.all([
+          urlToFile(application.coverImageUrl, "existing-cover.jpg"),
+          urlToFile(application.proofDocumentUrl, "existing-proof.jpg"),
+          ...existingVenueImages.map((url, index) =>
+            urlToFile(url, `existing-venue-${index + 1}.jpg`),
+          ),
+        ]);
+
+        if (!mounted) return;
+        if (cover) setCoverImage(cover);
+        if (proof) setProofDocument(proof);
+        if (
+          gallery.length === existingVenueImages.length &&
+          gallery.every(Boolean)
+        ) {
+          setVenueImages(gallery);
+        }
+      } catch {
+        if (mounted) {
+          setError(
+            "Existing files could not be prepared. Please select them again before resubmitting.",
+          );
+        }
+      } finally {
+        if (mounted) setLoadingMedia(false);
+      }
+    }
+
+    hydrateExistingMedia();
+    return () => {
+      mounted = false;
+    };
+  }, [application, existingVenueImages]);
+
+  function updateField(event) {
+    setFormData((current) => ({
+      ...current,
+      [event.target.name]: event.target.value,
+    }));
+  }
+
+  function updateImages(event) {
+    const files = Array.from(event.target.files ?? []).filter((file) =>
+      ["image/jpeg", "image/png"].includes(file.type),
+    );
+
+    if (venueImages.length + files.length > 5) {
+      setError("You can upload a maximum of 5 venue images.");
+      event.target.value = "";
+      return;
+    }
+
+    setVenueImages((current) => [...current, ...files]);
+    setError("");
+    event.target.value = "";
+  }
+
+  async function submit(event) {
+    event.preventDefault();
+    if (venueImages.length !== 5 || !coverImage || !proofDocument) {
+      setError(
+        "Select exactly 5 venue images, 1 cover image, and 1 proof document.",
+      );
+      return;
+    }
+
+    setSubmitting(true);
+    setError("");
+    try {
+      const payload = new FormData();
+      Object.entries({
+        ...formData,
+        venueGroupId: application.venueGroupId,
+      }).forEach(([key, value]) => payload.append(key, value));
+      venueImages.forEach((file) => payload.append("venueImages", file));
+      payload.append("coverImage", coverImage);
+      payload.append("proofDocument", proofDocument);
+      await submitVenueApplication(payload);
+      onSuccess();
+    } catch (submissionError) {
+      setError(
+        submissionError?.response?.data?.message ||
+          "Could not resubmit application.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const inputClass =
+    "mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-800 outline-none focus:border-indigo-500 focus:bg-white";
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs transition hover:border-slate-300">
-      {/* Top Banner Row */}
-      <div className="flex flex-col gap-4 border-b border-slate-100 p-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-            <Building2 className="h-6 w-6" />
-          </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-xl font-bold tracking-tight text-slate-900">
-                {item.name}
-              </h2>
-              <span className="rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wider text-slate-600">
-                {item.category}
-              </span>
-            </div>
-            <div className="mt-1 flex items-center gap-2 text-xs text-slate-400">
-              <span>Submitted on {formatTimestamp(item.submittedAt)}</span>
-              <span>•</span>
-              <span className="font-mono">ID: {item.id}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          <div
-            className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${statusCfg.badgeClass}`}
-          >
-            <span className={`h-2 w-2 rounded-full ${statusCfg.dotClass}`} />
-            {statusCfg.label}
-          </div>
-        </div>
-      </div>
-
-      {/* Rejection Notification if applicable */}
-      {item.status === "rejected" && item.rejectionReason && (
-        <div className="flex items-start gap-3 border-b border-rose-100 bg-rose-50/60 p-4 px-6 text-sm text-rose-700">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-rose-500" />
-          <div>
-            <p className="font-semibold">Reviewer Notes:</p>
-            <p className="mt-0.5 text-rose-600">{item.rejectionReason}</p>
-          </div>
-        </div>
-      )}
-
-      {/* Main Body Details */}
-      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3">
-        {/* Details Column */}
-        <div className="space-y-4 lg:col-span-2">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Overview & Details
-            </span>
-            <p className="mt-1 text-sm leading-relaxed text-slate-700">
-              {item.venueDetails}
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 rounded-xl border border-slate-100 bg-slate-50/60 p-4 sm:grid-cols-2">
-            <div>
-              <span className="text-xs font-medium text-slate-400">
-                Location
-              </span>
-              <div className="mt-1 flex items-start gap-1.5 text-sm font-semibold text-slate-800">
-                <MapPin className="h-4 w-4 shrink-0 text-slate-400" />
-                <span>
-                  {item.address}, {item.district}, {item.state} - {item.pincode}
-                </span>
-              </div>
-            </div>
-
-            <div>
-              <span className="text-xs font-medium text-slate-400">
-                Geolocation
-              </span>
-              <div className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-800">
-                <Compass className="h-4 w-4 shrink-0 text-slate-400" />
-                <span>
-                  {item.latitude}, {item.longitude}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Uploaded Venue Images Showcase */}
-          <div>
-            <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              <ImageIcon className="h-3.5 w-3.5" />
-              Venue Photos ({item.images?.length || 0})
-            </div>
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-              {(item.images || []).map((imgUrl, i) => (
-                <div
-                  key={i}
-                  onClick={() => setSelectedImage(imgUrl)}
-                  className="group relative aspect-4/3 cursor-pointer overflow-hidden rounded-lg border border-slate-200 bg-slate-100"
-                >
-                  <img
-                    src={imgUrl}
-                    alt={`Venue ${i + 1}`}
-                    className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition group-hover:opacity-100">
-                    <Eye className="h-4 w-4 text-white" />
-                  </div>
-                </div>
+    <form onSubmit={submit} className="space-y-6">
+      <Section title="Edit Venue Details">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {[
+            ["name", "Venue Name"],
+            ["district", "District"],
+            ["address", "Address"],
+            ["pincode", "Pincode"],
+            ["latitude", "Latitude"],
+            ["longitude", "Longitude"],
+          ].map(([name, label]) => (
+            <label
+              key={name}
+              className={`text-xs font-semibold uppercase tracking-wider text-slate-500 ${name === "address" ? "sm:col-span-2" : ""}`}
+            >
+              {label}
+              <input
+                name={name}
+                value={formData[name]}
+                onChange={updateField}
+                required
+                className={inputClass}
+              />
+            </label>
+          ))}
+          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            Category
+            <select
+              name="category"
+              value={formData.category}
+              onChange={updateField}
+              required
+              className={inputClass}
+            >
+              {CATEGORIES.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
               ))}
-            </div>
-          </div>
+            </select>
+          </label>
+          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            State
+            <select
+              name="state"
+              value={formData.state}
+              onChange={updateField}
+              required
+              className={inputClass}
+            >
+              {STATES.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 sm:col-span-2">
+            Description & Amenities
+            <textarea
+              name="venueDetails"
+              value={formData.venueDetails}
+              onChange={updateField}
+              rows={4}
+              required
+              className={inputClass}
+            />
+          </label>
         </div>
+      </Section>
 
-        {/* Verification Document Panel */}
-        <div className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-slate-50/40 p-5">
-          <div>
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-indigo-600" />
-              <h3 className="text-sm font-bold text-slate-900">
-                Proof of Ownership
-              </h3>
-            </div>
-            <p className="mt-1 text-xs text-slate-500">
-              Attached document for licensing & premises authority verification.
-            </p>
+      <Section title="Updated Verification Files">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <UploadTile
+            title="Cover Image"
+            file={coverImage || application.coverImageUrl}
+            onChange={(event) => setCoverImage(event.target.files?.[0] ?? null)}
+          >
+            {coverImage ? (
+              <img
+                src={URL.createObjectURL(coverImage)}
+                alt="Cover preview"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : application.coverImageUrl ? (
+              <img
+                src={application.coverImageUrl}
+                alt="Current cover"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : (
+              <ImageIcon className="h-7 w-7 text-slate-400" />
+            )}
+          </UploadTile>
+          <UploadTile
+            title="Proof Document"
+            file={proofDocument || application.proofDocumentUrl}
+            onChange={(event) =>
+              setProofDocument(event.target.files?.[0] ?? null)
+            }
+          >
+            {proofDocument ? (
+              <img
+                src={URL.createObjectURL(proofDocument)}
+                alt="Proof preview"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : application.proofDocumentUrl ? (
+              <img
+                src={application.proofDocumentUrl}
+                alt="Current proof document"
+                className="absolute inset-0 h-full w-full object-contain"
+              />
+            ) : (
+              <FileText className="h-7 w-7 text-slate-400" />
+            )}
+          </UploadTile>
+        </div>
+      </Section>
 
-            <div className="mt-4 overflow-hidden rounded-lg border border-slate-200 bg-white p-2">
+      <Section title="Venue Gallery Images (5 Required)">
+        <div className="mb-4 flex items-center justify-between gap-4 text-xs font-semibold text-slate-400">
+          <span>
+            Existing images are shown for reference. Select 5 new images to
+            resubmit.
+          </span>
+          {venueImages.length} of 5 selected
+        </div>
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          {venueImages.length === 0 &&
+            existingVenueImages.map((url, index) => (
               <div
-                onClick={() => onPreviewDoc(item.proofDocumentUrl)}
-                className="group relative aspect-4/3 w-full cursor-pointer overflow-hidden rounded bg-slate-100"
+                key={`existing-${url}`}
+                className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
               >
                 <img
-                  src={item.proofDocumentUrl}
-                  alt="Proof doc thumbnail"
-                  className="h-full w-full object-cover transition group-hover:scale-105"
+                  src={url}
+                  alt={`Current venue gallery ${index + 1}`}
+                  className="h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition group-hover:opacity-100">
-                  <span className="inline-flex items-center gap-1 rounded bg-white px-2 py-1 text-xs font-semibold text-slate-800">
-                    <Eye className="h-3 w-3" /> View Doc
-                  </span>
-                </div>
+                <span className="absolute bottom-1.5 left-1.5 rounded-md bg-black/60 px-2 py-1 text-[10px] font-semibold text-white">
+                  Current
+                </span>
               </div>
+            ))}
+          {venueImages.map((file, index) => (
+            <div
+              key={file.name + file.lastModified}
+              className="relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
+            >
+              <img
+                src={URL.createObjectURL(file)}
+                alt={`Venue gallery ${index + 1}`}
+                className="h-full w-full object-cover"
+              />
+              <button
+                type="button"
+                onClick={() =>
+                  setVenueImages((current) =>
+                    current.filter((_, fileIndex) => fileIndex !== index),
+                  )
+                }
+                className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white hover:bg-black"
+                aria-label={`Remove gallery image ${index + 1}`}
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
             </div>
-          </div>
-
-          <Button
-            variant="outline"
-            onClick={() => onPreviewDoc(item.proofDocumentUrl)}
-            className="mt-4 w-full gap-2 rounded-xl text-xs font-semibold text-slate-700"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            Inspect Proof Fullscreen
-          </Button>
-        </div>
-      </div>
-
-      {/* Full Image Viewer Dialog */}
-      <Dialog
-        open={Boolean(selectedImage)}
-        onOpenChange={() => setSelectedImage(null)}
-      >
-        <DialogContent className="max-w-3xl overflow-hidden p-0">
-          {selectedImage && (
-            <img
-              src={selectedImage}
-              alt="Gallery enlarged"
-              className="max-h-[80vh] w-full object-contain bg-black"
-            />
+          ))}
+          {venueImages.length < 5 && (
+            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-4 text-center transition hover:border-indigo-400 hover:bg-indigo-50/30">
+              <Upload className="h-5 w-5 text-slate-400" />
+              <span className="mt-2 text-xs font-medium text-slate-600">
+                Upload Image
+              </span>
+              <span className="text-[10px] text-slate-400">JPEG, PNG</span>
+              <input
+                type="file"
+                accept="image/jpeg,image/png"
+                multiple
+                onChange={updateImages}
+                className="hidden"
+              />
+            </label>
           )}
-        </DialogContent>
-      </Dialog>
+        </div>
+      </Section>
+
+      {error && (
+        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
+          {error}
+        </div>
+      )}
+      <div className="flex justify-end gap-3">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={submitting}
+        >
+          Cancel
+        </Button>
+        <Button type="submit" disabled={submitting || loadingMedia}>
+          {loadingMedia
+            ? "Preparing files..."
+            : submitting
+              ? "Resubmitting..."
+              : "Resubmit Application"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function ReadOnlyApplication({ application, onEdit }) {
+  const statusClass = getStatusClass(application.status);
+  return (
+    <div className="space-y-6">
+      <Section
+        title="Application Summary"
+        action={
+          application.status === "rejected" ? (
+            <Button onClick={onEdit} className="gap-2 rounded-xl">
+              <Pencil className="h-4 w-4" />
+              Edit & Resubmit
+            </Button>
+          ) : null
+        }
+      >
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">
+              {application.name}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Application ID: {application.id}
+            </p>
+          </div>
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase ${statusClass}`}
+          >
+            {application.status}
+          </span>
+        </div>
+        {application.rejectionReason && (
+          <div className="mt-5 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+            <strong>Reviewer feedback:</strong> {application.rejectionReason}
+          </div>
+        )}
+      </Section>
+      <Section title="Venue Details">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <Field label="Name">{application.name}</Field>
+          <Field label="Category">{application.category}</Field>
+          <Field label="Submitted">{formatDate(application.submittedAt)}</Field>
+          <Field label="Address">{application.address}</Field>
+          <Field label="District">{application.district}</Field>
+          <Field label="State">{application.state}</Field>
+          <Field label="Pincode">{application.pincode}</Field>
+          <Field label="Latitude">{application.latitude}</Field>
+          <Field label="Longitude">{application.longitude}</Field>
+          <div className="sm:col-span-2 lg:col-span-3">
+            <Field label="Description & Amenities">
+              {application.venueDetails}
+            </Field>
+          </div>
+        </div>
+      </Section>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
+        <Section title="Cover Image">
+          <img
+            src={application.coverImageUrl}
+            alt={`${application.name} cover`}
+            className="h-80 w-full rounded-xl border border-slate-200 bg-slate-50 object-cover sm:h-28rem"
+          />
+        </Section>
+        <Section title="Proof of Ownership">
+          <img
+            src={application.proofDocumentUrl}
+            alt="Proof of ownership"
+            className="h-80 w-full rounded-xl border border-slate-200 bg-slate-50 object-contain sm:h-28rem"
+          />
+        </Section>
+      </div>
+      <Section title={`Venue Photos (${application.images?.length ?? 0})`}>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {(application.images ?? []).map((url, index) => (
+            <img
+              key={url}
+              src={url}
+              alt={`Venue ${index + 1}`}
+              className="aspect-4/3 w-full rounded-xl border border-slate-200 object-cover"
+            />
+          ))}
+        </div>
+      </Section>
     </div>
   );
 }
 
 export default function ReviewVenueApplicationPage() {
   const { applicationId } = useParams();
+  const navigate = useNavigate();
   const [application, setApplication] = useState(null);
+  const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [previewDocUrl, setPreviewDocUrl] = useState(null);
-  const pendingCount = application?.status === "pending" ? 1 : 0;
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    let isMounted = true;
-
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getVenuesApplication(applicationId);
-        if (isMounted) setApplication(data);
-      } catch {
-        if (isMounted) setError("Failed to fetch venue applications.");
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    }
-
-    load();
+    let mounted = true;
+    getVenuesApplication(applicationId)
+      .then((data) => {
+        if (mounted) setApplication(data);
+      })
+      .catch((err) => {
+        if (mounted)
+          setError(
+            err?.response?.data?.message || "Could not load application.",
+          );
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
     return () => {
-      isMounted = false;
+      mounted = false;
     };
   }, [applicationId]);
 
+  if (loading)
+    return (
+      <div className="space-y-4">
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  if (error)
+    return (
+      <div className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        {error}
+      </div>
+    );
+  if (!application) return null;
+
   return (
     <div className="w-full space-y-6 pb-12">
-      {/* Top Header */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-8">
+      <Button
+        variant="ghost"
+        onClick={() => navigate(-1)}
+        className="w-fit gap-2 px-0"
+      >
+        <ArrowLeft className="h-4 w-4" />
+        Back to Venues
+      </Button>
+      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-8">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Venues Application Status
-          </h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Venue Application
+            </h1>
+            <span
+              className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase ${getStatusClass(application.status)}`}
+            >
+              {application.status}
+            </span>
+          </div>
           <p className="mt-1 text-sm text-slate-500">
-            Track Venue review progress, verification status, and admin feedback
-            for your submitted properties.
+            Review your submitted venue information and verification files.
           </p>
-        </div>
-        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
-          <span className="h-2 w-2 rounded-full bg-amber-500" />
-          {pendingCount} Under Review
         </div>
       </div>
-
-      {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
-          <AlertTriangle className="h-5 w-5 shrink-0 text-rose-500" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Content Rendering */}
-      {loading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 2 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4"
-            >
-              <Skeleton className="h-8 w-1/3" />
-              <Skeleton className="h-20 w-full" />
-              <div className="grid grid-cols-4 gap-2">
-                <Skeleton className="h-16 rounded-lg" />
-                <Skeleton className="h-16 rounded-lg" />
-                <Skeleton className="h-16 rounded-lg" />
-                <Skeleton className="h-16 rounded-lg" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : !application ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-white py-16 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-            <Layers className="h-6 w-6" />
-          </div>
-          <p className="mt-3 text-sm font-semibold text-slate-800">
-            No venue submissions on record
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            You currently have no pending or reviewed venue applications.
-          </p>
-        </div>
+      {editing && application.status === "rejected" ? (
+        <ResubmitForm
+          application={application}
+          onCancel={() => setEditing(false)}
+          onSuccess={() => navigate("/vendor/venues")}
+        />
       ) : (
-        <div className="space-y-6">
-          {[application].map((item) => (
-            <ApplicationCard
-              key={item.id}
-              item={item}
-              onPreviewDoc={(url) => setPreviewDocUrl(url)}
-            />
-          ))}
-        </div>
+        <ReadOnlyApplication
+          application={application}
+          onEdit={() => setEditing(true)}
+        />
       )}
-
-      {/* Full Document Preview Dialog */}
-      <Dialog
-        open={Boolean(previewDocUrl)}
-        onOpenChange={() => setPreviewDocUrl(null)}
-      >
-        <DialogContent className="max-w-4xl p-2">
-          <DialogHeader className="p-2 border-b">
-            <DialogTitle className="text-sm font-semibold text-slate-800">
-              Submitted Proof Document
-            </DialogTitle>
-          </DialogHeader>
-          {previewDocUrl && (
-            <div className="max-h-[80vh] overflow-auto rounded bg-slate-100">
-              <img
-                src={previewDocUrl}
-                alt="Full Proof Document"
-                className="w-full object-contain"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
