@@ -24,8 +24,8 @@ export async function getVenues(vendorId) {
   );
 }
 
-export async function getVenueDetails(venueId, vendorId) {
-  const venue = await repository.fetchVenue(venueId, vendorId);
+export async function getVenueDetails(vendorId, venueId) {
+  const venue = await repository.fetchVenue(vendorId, venueId);
 
   if (!venue) {
     throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);
@@ -34,7 +34,45 @@ export async function getVenueDetails(venueId, vendorId) {
   const reverification =
     await repository.fetchReverificationApplication(venueId);
 
-  return { venue, reverification };
+  const coverImageId = `venues/${vendorId}/${venueId}/cover_image`;
+  const [coverImageUrl] = await getFromCloudinary([coverImageId]);
+  const imageUrls = await getFromCloudinary(venue.images ?? []);
+
+  return {
+    venue: {
+      id: venue.id,
+      name: venue.name,
+      description: venue.description,
+      address: venue.address,
+      category: venue.category,
+      district: venue.district,
+      state: venue.state,
+      pincode: venue.pincode,
+      latitude: venue.latitude,
+      longitude: venue.longitude,
+      bookingType: venue.booking_type,
+      openingTime: venue.opening_time,
+      closingTime: venue.closing_time,
+      status: venue.status,
+      suspensionReason: venue.suspension_reason,
+      createdAt: venue.created_at,
+      coverImageUrl: venue.has_cover_image ? coverImageUrl : null,
+      imageUrls: imageUrls,
+    },
+    reverification: {
+      id: reverification?.id ?? null,
+      category: reverification?.category ?? null,
+      address: reverification?.address ?? null,
+      district: reverification?.district ?? null,
+      state: reverification?.state ?? null,
+      pincode: reverification?.pincode ?? null,
+      latitude: reverification?.latitude ?? null,
+      longitude: reverification?.longitude ?? null,
+      status: reverification?.status ?? null,
+      rejectionReason: reverification?.rejection_reason ?? null,
+      submittedAt: reverification?.submitted_at ?? null,
+    },
+  };
 }
 
 export async function uploadCoverImage(vendorId, venueId, file) {
@@ -175,7 +213,7 @@ export async function updateVenuePricing(vendorId, venueId, data) {
 
 export async function updateVenueStatus(vendorId, venueId, status) {
   if (status == 'draft') {
-    const id = await repository.updateVenueStatus(vendorId, venueId);
+    const id = await repository.updateVenueStatus(vendorId, venueId, status);
     if (!id) {
       throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);
     }

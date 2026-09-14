@@ -39,7 +39,7 @@ router.patch(
 );
 
 router.patch(
-  'venues/:venueId/description',
+  '/venues/:venueId/description',
   validateSchema(schema.venueId, 'params'),
   validateSchema(schema.description),
   controller.updateVenueDescription
@@ -72,7 +72,5 @@ router.patch(
   validateSchema(schema.reverification),
   controller.updateReverificationDetails
 );
-
-router.get('/venues/applications/status', controller.getVenuesApplications);
 
 export default router;

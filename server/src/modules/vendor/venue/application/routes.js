@@ -9,7 +9,7 @@ import schema from './schema.js';
 const router = express.Router();
 
 router.post(
-  '/venue/application',
+  '/venues/application',
   upload(7, 10).fields([
     { name: 'venueImages', maxCount: 5 },
     { name: 'proofDocument', maxCount: 1 },

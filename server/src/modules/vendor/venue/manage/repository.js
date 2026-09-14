@@ -12,7 +12,7 @@ export async function featchVenues(vendorId) {
 
 export async function fetchVenue(vendorId, venueId) {
   const result = await pool.query(
-    `SELECT id, name, description, category, address, district, state, pincode, geo_loc, has_cover_image, images, booking_type, opening_time, closing_time, status, suspension_reason, created_at FROM venues WHERE id = $1 AND vendor_id = $2`,
+    `SELECT id, name, description, category, address, district, state, pincode, ST_Y(geo_loc::geometry) AS latitude, ST_X(geo_loc::geometry) AS longitude, has_cover_image, images, booking_type, opening_time, closing_time, status, suspension_reason, created_at FROM venues WHERE id = $1 AND vendor_id = $2`,
     [venueId, vendorId]
   );
   return result.rows[0] ?? null;
@@ -20,7 +20,8 @@ export async function fetchVenue(vendorId, venueId) {
 
 export async function fetchReverificationApplication(venueId) {
   const result = await pool.query(
-    `SELECT id, category, address, district, state, pincode, geo_loc,
+    `SELECT id, category, address, district, state, pincode, ST_Y(geo_loc::geometry) AS latitude,
+    ST_X(geo_loc::geometry) AS longitude,
             status, rejection_reason, submitted_at, reviewed_at
      FROM venue_reverifications
      WHERE venue_id = $1
@@ -100,7 +101,7 @@ export async function updateVenueTime(
     UPDATE venues
     SET
     opening_time = $1,
-    closing_time = $2,
+    closing_time = $2
     WHERE id = $3
     AND vendor_id = $4
     RETURNING id
@@ -162,7 +163,7 @@ export async function insertTimeSlotPricing(client, venueId, pricing) {
 
 export async function updateVenueStatus(vendorId, venueId, status) {
   const result = await pool.query(
-    `UPDATE venues SET status = $1 WHERE id = $1 AND vendorId = $2 RETURNING id`,
+    `UPDATE venues SET status = $1 WHERE id = $2 AND vendor_id = $3 RETURNING id`,
     [status, venueId, vendorId]
   );
   return result.rows[0]?.id ?? null;
