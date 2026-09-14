@@ -1,6 +1,8 @@
 import { vendorApplyLoader } from "@/loaders/vendorApply.loader";
+import { vendorApplicationStatusLoader } from "@/loaders/vendorApplicationStatus.loader";
 import { vendorAuthLoader } from "@/loaders/vendorAuth.loader";
 import VendorApplyPage from "@/pages/vendor/VendorApplyPage";
+import VendorApplicationStatusPage from "@/pages/vendor/VendorApplicationStatusPage";
 import VendorDashboardPage from "@/pages/vendor/VendorDashboardPage";
 import VendorOveriviewPage from "@/pages/vendor/VendorOverviewPage";
 import VendorProfilePage from "@/pages/vendor/VendorProfilePage";
@@ -14,6 +16,11 @@ export const vendorRoutes = [
     path: "/vendor/apply",
     element: <VendorApplyPage />,
     loader: vendorApplyLoader,
+  },
+  {
+    path: "/vendor/application/status",
+    element: <VendorApplicationStatusPage />,
+    loader: vendorApplicationStatusLoader,
   },
   {
     path: "/vendor",

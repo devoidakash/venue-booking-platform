@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useRevalidator } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import {
@@ -63,7 +63,6 @@ function Field({ label, error, children, className = "" }) {
 }
 
 export default function VendorApplicationForm() {
-  const revalidator = useRevalidator();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -72,6 +71,7 @@ export default function VendorApplicationForm() {
   const [fileError, setFileError] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const {
     register,
@@ -83,6 +83,10 @@ export default function VendorApplicationForm() {
 
   const handleFile = (e) => {
     const f = e.target.files?.[0];
+    handleSelectedFile(f);
+  };
+
+  const handleSelectedFile = (f) => {
     if (!f) return;
 
     if (f.size > 5 * 1024 * 1024) {
@@ -100,6 +104,12 @@ export default function VendorApplicationForm() {
     setFileError("");
     setFile(f);
     setFilePreview(URL.createObjectURL(f));
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    handleSelectedFile(e.dataTransfer.files?.[0]);
   };
 
   const handleRemoveFile = (e) => {
@@ -135,8 +145,7 @@ export default function VendorApplicationForm() {
 
     try {
       await submitApplication(formData);
-      revalidator.revalidate();
-      navigate(".", { replace: true });
+      navigate("/vendor/application/status", { replace: true });
     } catch (err) {
       if (err.response?.status === 401) {
         return;
@@ -339,32 +348,60 @@ export default function VendorApplicationForm() {
                   {!file ? (
                     <div
                       onClick={() => fileInputRef.current?.click()}
-                      className={`h-14 border rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-colors ${
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDragging(true);
+                      }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={handleDrop}
+                      className={`group min-h-40 rounded-2xl border-2 border-dashed px-5 py-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
                         fileError
                           ? "border-red-400 bg-red-50/50"
-                          : "border-dashed border-stone-300 bg-stone-50/50 hover:bg-stone-100/60 hover:border-amber-400"
+                          : isDragging
+                            ? "border-amber-500 bg-amber-50 scale-[1.01]"
+                            : "border-stone-300 bg-stone-50/70 hover:border-amber-400 hover:bg-amber-50/40"
                       }`}
                     >
-                      <UploadCloud className="w-4 h-4 text-stone-400" />
-                      <span className="text-xs text-stone-600 font-medium">
-                        Upload JPG or PNG (max 5MB)
+                      <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-white border border-stone-200 text-amber-600 shadow-sm transition-transform group-hover:-translate-y-0.5">
+                        <UploadCloud className="h-5 w-5" />
+                      </span>
+                      <span className="text-sm font-bold text-stone-800">
+                        Drop your PAN document here
+                      </span>
+                      <span className="mt-1 text-xs text-stone-500">
+                        or{" "}
+                        <span className="font-semibold text-amber-700">
+                          browse files
+                        </span>{" "}
+                        from your device
+                      </span>
+                      <span className="mt-3 rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-stone-400 border border-stone-200">
+                        JPG or PNG · max 5MB
                       </span>
                     </div>
                   ) : (
-                    <div className="h-14 border border-stone-200 rounded-xl bg-stone-50/80 px-4 flex items-center justify-between">
+                    <div className="min-h-24 border border-amber-200 rounded-2xl bg-amber-50/50 px-4 py-3 flex items-center justify-between">
                       <div className="flex items-center gap-3 truncate">
                         {filePreview ? (
                           <img
                             src={filePreview}
                             alt="PAN Preview"
-                            className="w-9 h-9 object-cover rounded-md border border-stone-200 shrink-0"
+                            className="w-16 h-16 object-cover rounded-lg border border-amber-200 shrink-0"
                           />
                         ) : (
-                          <FileText className="w-5 h-5 text-amber-600 shrink-0" />
+                          <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-white border border-amber-200 shrink-0">
+                            <FileText className="w-6 h-6 text-amber-600" />
+                          </span>
                         )}
-                        <span className="text-xs font-medium text-stone-700 truncate">
-                          {file.name}
-                        </span>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-stone-800 truncate">
+                            {file.name}
+                          </p>
+                          <p className="mt-1 text-[11px] text-stone-500">
+                            {(file.size / 1024 / 1024).toFixed(2)} MB · Ready to
+                            upload
+                          </p>
+                        </div>
                       </div>
                       <button
                         type="button"

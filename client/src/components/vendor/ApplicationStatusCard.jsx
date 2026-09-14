@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Clock, XCircle, AlertCircle, RefreshCw, Mail } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Clock,
+  XCircle,
+  CheckCircle,
+  AlertCircle,
+  RefreshCw,
+  Mail,
+  ArrowRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,10 +23,12 @@ import VendorApplicationForm from "./VendorApplicationForm";
 
 export default function ApplicationStatusCard({ status, reason }) {
   const [reapplying, setReapplying] = useState(false);
+  const navigate = useNavigate();
 
   if (reapplying) return <VendorApplicationForm />;
 
   const isPending = status === "pending";
+  const isApproved = status === "approved";
 
   const config = isPending
     ? {
@@ -33,18 +44,32 @@ export default function ApplicationStatusCard({ status, reason }) {
           "Thank you for your interest in becoming a vendor. Our compliance team is actively reviewing your submission.",
         timelineNotice: "Standard review time: 1–2 business days.",
       }
-    : {
-        badge: {
-          label: "Declined",
-          className:
-            "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/10",
-        },
-        iconWrapper: "bg-destructive/10 text-destructive",
-        icon: <XCircle className="h-8 w-8" />,
-        title: "Application Declined",
-        description:
-          "We're unable to approve your vendor application at this time. Please review the details below before submitting a new request.",
-      };
+    : isApproved
+      ? {
+          badge: {
+            label: "Approved",
+            className:
+              "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10",
+          },
+          iconWrapper:
+            "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+          icon: <CheckCircle className="h-8 w-8" />,
+          title: "Application Approved",
+          description:
+            "Your vendor application has been approved. You can now start setting up your venues and accepting bookings.",
+        }
+      : {
+          badge: {
+            label: "Declined",
+            className:
+              "bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/10",
+          },
+          iconWrapper: "bg-destructive/10 text-destructive",
+          icon: <XCircle className="h-8 w-8" />,
+          title: "Application Declined",
+          description:
+            "We're unable to approve your vendor application at this time. Please review the details below before submitting a new request.",
+        };
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-4">
@@ -80,6 +105,12 @@ export default function ApplicationStatusCard({ status, reason }) {
                 You will receive an email confirmation once a decision is made.
               </p>
             </div>
+          ) : isApproved ? (
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-4 text-center dark:border-emerald-950 dark:bg-emerald-950/20">
+              <p className="text-sm text-emerald-700 dark:text-emerald-300">
+                Your vendor account is ready to use.
+              </p>
+            </div>
           ) : (
             <div className="rounded-lg border border-red-200 bg-red-50/60 p-4 dark:border-red-950 dark:bg-red-950/20">
               <div className="flex items-start gap-3">
@@ -99,7 +130,15 @@ export default function ApplicationStatusCard({ status, reason }) {
         </CardContent>
 
         <CardFooter className="flex flex-col sm:flex-row gap-2 pt-2">
-          {!isPending ? (
+          {isApproved ? (
+            <Button
+              className="w-full gap-2"
+              onClick={() => navigate("/vendor/overview")}
+            >
+              Go to Vendor Dashboard
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          ) : !isPending ? (
             <>
               <Button
                 variant="outline"
