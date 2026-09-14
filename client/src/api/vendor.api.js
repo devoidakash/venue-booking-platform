@@ -9,9 +9,13 @@ export async function getVendorVenues() {
 }
 
 export async function submitVenueApplication(payload) {
-  return axiosInstance.post("/vendor/venue/application", payload);
+  return axiosInstance.post("/vendor/venues/application", payload);
 }
 
 export async function getVenuesApplicationStatus() {
   return axiosInstance.get("/vendor/venues/applications/status");
+}
+
+export async function getVenueDetails(venueId) {
+  return axiosInstance.get(`/vendor/venues/${venueId}`);
 }
