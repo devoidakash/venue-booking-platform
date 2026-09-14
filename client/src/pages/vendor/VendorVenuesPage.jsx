@@ -75,7 +75,7 @@ function getCategoryMeta(category) {
 
 const STATUS_CONFIG = {
   live: {
-    label: "Live & Active",
+    label: "Live ",
     dotColor: "bg-emerald-500 ring-emerald-100",
     badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
   },
@@ -382,7 +382,7 @@ export default function VendorVenuesPage() {
           value={loading ? "..." : statusCounts.pending}
           helper="Check status / admin review"
           active={selectedStatus === "pending"}
-          onClick={() => navigate("/vendor/venues/applications/status")}
+          onClick={() => navigate("/vendor/venues/application/status")}
         />
         <StatTile
           icon={Ban}

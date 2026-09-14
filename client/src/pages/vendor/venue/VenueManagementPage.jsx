@@ -354,66 +354,71 @@ export default function VenueManagementPage() {
               </div>
             </SectionCard>
 
-            <div className="order-2 grid grid-cols-1 gap-6 lg:grid-cols-10">
+            <div className="order-2 grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
               <SectionCard
                 title="Cover Image"
                 action={<EditButton disabled />}
-                className="lg:col-span-3"
+                className="p-4! sm:p-5! lg:col-span-3"
               >
                 {venue.coverImageUrl ? (
                   <img
                     src={venue.coverImageUrl}
                     alt={`${venue.name} cover`}
-                    className="aspect-video w-full rounded-2xl border border-slate-200 object-cover"
+                    className="aspect-4/5 w-full rounded-2xl border border-slate-200 object-cover"
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 py-12 text-slate-400">
+                  <div className="flex aspect-4/5 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-slate-200 text-slate-400">
                     <ImageIcon className="h-5 w-5" />
                     <p className="text-sm">No cover image available.</p>
                   </div>
                 )}
               </SectionCard>
 
-              <SectionCard
-                title="Description"
-                action={<EditButton disabled />}
-                className="lg:col-span-7"
-              >
-                <p className="text-sm leading-relaxed text-slate-600">
-                  {displayValue(venue.description)}
-                </p>
-              </SectionCard>
+              <div className="space-y-6 lg:col-span-9">
+                <SectionCard
+                  title="Description"
+                  action={<EditButton disabled />}
+                  className="min-h-72 lg:min-h-80"
+                >
+                  <p className="text-sm leading-relaxed text-slate-600">
+                    {displayValue(venue.description)}
+                  </p>
+                </SectionCard>
+
+                <SectionCard title="Operating Info">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="rounded-2xl border border-slate-200 p-5">
+                      <div className="flex items-center justify-between">
+                        <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                          <Clock3 className="h-4 w-4 text-indigo-500" />
+                          Opening & Closing Time
+                        </p>
+                        <EditButton disabled />
+                      </div>
+                      <div className="mt-3 flex items-center gap-3 text-sm font-semibold text-slate-900">
+                        <span>{formatTime(venue.openingTime)}</span>
+                        <span className="h-px w-4 bg-slate-300" />
+                        <span>{formatTime(venue.closingTime)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </SectionCard>
+              </div>
             </div>
 
-            <SectionCard title="Operating Info" className="order-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 p-5">
-                  <div className="flex items-center justify-between">
-                    <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <CalendarClock className="h-4 w-4 text-indigo-500" />
-                      Booking Type
-                    </p>
-                    <EditButton disabled />
-                  </div>
-                  <p className="mt-3 text-sm font-semibold text-slate-900">
-                    {formatBookingType(venue.bookingType)}
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 p-5">
-                  <div className="flex items-center justify-between">
-                    <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <Clock3 className="h-4 w-4 text-indigo-500" />
-                      Opening & Closing Time
-                    </p>
-                    <EditButton disabled />
-                  </div>
-                  <div className="mt-3 flex items-center gap-3 text-sm font-semibold text-slate-900">
-                    <span>{formatTime(venue.openingTime)}</span>
-                    <span className="h-px w-4 bg-slate-300" />
-                    <span>{formatTime(venue.closingTime)}</span>
-                  </div>
-                </div>
+            <SectionCard
+              title="Pricing Info"
+              action={<EditButton disabled />}
+              className="order-4"
+            >
+              <div className="rounded-2xl border border-slate-200 p-5">
+                <p className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <CalendarClock className="h-4 w-4 text-indigo-500" />
+                  Booking Type
+                </p>
+                <p className="mt-3 text-sm font-semibold text-slate-900">
+                  {formatBookingType(venue.bookingType)}
+                </p>
               </div>
             </SectionCard>
           </div>
