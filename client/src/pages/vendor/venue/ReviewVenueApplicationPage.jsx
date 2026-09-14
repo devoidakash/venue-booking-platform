@@ -301,8 +301,8 @@ function ResubmitForm({ application, onCancel, onSuccess }) {
         </div>
       </Section>
 
-      <Section title="Updated Verification Files">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Section title="Cover Image">
           <UploadTile
             title="Cover Image"
             file={coverImage || application.coverImageUrl}
@@ -324,6 +324,8 @@ function ResubmitForm({ application, onCancel, onSuccess }) {
               <ImageIcon className="h-7 w-7 text-slate-400" />
             )}
           </UploadTile>
+        </Section>
+        <Section title="Proof of Ownership">
           <UploadTile
             title="Proof Document"
             file={proofDocument || application.proofDocumentUrl}
@@ -347,8 +349,8 @@ function ResubmitForm({ application, onCancel, onSuccess }) {
               <FileText className="h-7 w-7 text-slate-400" />
             )}
           </UploadTile>
-        </div>
-      </Section>
+        </Section>
+      </div>
 
       <Section title="Venue Gallery Images (5 Required)">
         <div className="mb-4 flex items-center justify-between gap-4 text-xs font-semibold text-slate-400">
