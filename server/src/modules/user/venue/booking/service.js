@@ -25,7 +25,7 @@ export async function getVenues() {
 
 export async function getVenue(venueId) {
   const data = await repository.getVenue(venueId);
-  const { vendor_id, images, ...venue } = data;
+  const { images, ...venue } = data;
 
   const imagesUrl = await getFromCloudinary(images);
 

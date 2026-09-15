@@ -16,24 +16,26 @@ export async function getVenue(venueId) {
     `
   SELECT
   v.id,
-  v.vendor_id,
   v.name,
   v.description,
   v.category,
   v.district,
   v.state,
-  v.booking_type,
-  v.opening_time,
-  v.closing_time,
+  v.pincode,
+  ST_Y(v.geo_loc::geometry) AS latitude,
+  ST_X(v.geo_loc::geometry) AS longitude,
+  v.booking_type as "bookingType",
+  v.opening_time as "openingTime",
+  v.closing_time as "closingTime",
   v.images,
-  vp.starting_price
+  vp."startingPrice" 
 
 FROM venues v
 
 JOIN (
   SELECT
     venue_id,
-    MIN(price) AS starting_price
+    MIN(price) AS "startingPrice"
   FROM venue_pricing
   GROUP BY venue_id
 ) vp ON vp.venue_id = v.id
