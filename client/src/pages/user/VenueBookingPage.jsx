@@ -9,6 +9,7 @@ import {
   Ticket,
   Wallet,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   FileText,
   Share2,
@@ -99,16 +100,44 @@ function HeroGallery({ images = [], name }) {
         </DialogTrigger>
       </div>
 
-      <DialogContent className="max-w-4xl gap-0 rounded-2xl p-0">
-        <DialogHeader className="px-6 pt-6">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-5xl gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-6xl">
+        <DialogHeader className="min-w-0 px-6 pt-6">
           <DialogTitle className="text-base font-medium">{name}</DialogTitle>
         </DialogHeader>
-        <div className="px-6 pb-6">
-          <img
-            src={images[active]}
-            alt=""
-            className="aspect-16/10 w-full rounded-xl object-cover"
-          />
+        <div className="min-w-0 px-6 pb-6">
+          <div className="relative">
+            <img
+              src={images[active]}
+              alt=""
+              className="aspect-16/10 max-h-[75vh] w-full rounded-xl bg-neutral-100 object-contain"
+            />
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Previous photo"
+                  onClick={() =>
+                    setActive((current) =>
+                      current === 0 ? images.length - 1 : current - 1,
+                    )
+                  }
+                  className="absolute left-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-neutral-900 shadow-md transition hover:bg-white"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Next photo"
+                  onClick={() =>
+                    setActive((current) => (current + 1) % images.length)
+                  }
+                  className="absolute right-3 top-1/2 grid h-10 w-10 -translate-y-1/2 place-items-center rounded-full bg-white/90 text-neutral-900 shadow-md transition hover:bg-white"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </>
+            )}
+          </div>
           <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
             {images.map((src, i) => (
               <button
