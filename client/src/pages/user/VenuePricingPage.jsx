@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Minus, Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -239,6 +239,7 @@ export default function VenuePricingPage({
   open: openProp,
   onOpenChange,
   onProceed,
+  proceedLoading = false,
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = openProp !== undefined;
@@ -259,6 +260,7 @@ export default function VenuePricingPage({
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedSlotPrice, setSelectedSlotPrice] = useState(null);
+  const [quantity, setQuantity] = useState(1);
 
   const canGoBack =
     month.getFullYear() > today.getFullYear() ||
@@ -285,13 +287,15 @@ export default function VenuePricingPage({
       : selectedDate
         ? priceForDate(selectedDate)
         : null;
+  const totalPrice = finalPrice != null ? finalPrice * quantity : null;
 
   const handleProceed = () => {
     if (!canProceed) return;
     onProceed?.({
       date: selectedDate,
       slot: selectedSlot,
-      price: finalPrice,
+      price: totalPrice,
+      quantity,
       bookingType: pricingData?.bookingType,
     });
   };
@@ -355,29 +359,88 @@ export default function VenuePricingPage({
 
         <div className="border-t border-neutral-100 px-6 py-4">
           {finalPrice != null && (
-            <div className="mb-3 flex items-center justify-between text-sm">
-              <span className="text-neutral-500">
-                {selectedDate?.toLocaleDateString("en-IN", {
-                  weekday: "short",
-                  day: "numeric",
-                  month: "short",
-                })}
-                {selectedSlot &&
-                  ` · ${formatHour(Number(selectedSlot.split("-")[0]))} – ${formatHour(
-                    Number(selectedSlot.split("-")[1]),
-                  )}`}
+            <>
+              <div className="mb-3 flex items-center justify-between text-sm">
+                <span className="text-neutral-500">
+                  {selectedDate?.toLocaleDateString("en-IN", {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                  })}
+                  {selectedSlot &&
+                    ` · ${formatHour(Number(selectedSlot.split("-")[0]))} – ${formatHour(
+                      Number(selectedSlot.split("-")[1]),
+                    )}`}
+                </span>
+                <span className="font-semibold text-neutral-900">
+                  {inr(totalPrice)}
+                </span>
+              </div>
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-sm font-medium text-neutral-700">
+                  Quantity
+                </span>
+                <div className="flex items-center gap-3 rounded-xl border border-neutral-200 p-1">
+                  <button
+                    type="button"
+                    aria-label="Decrease quantity"
+                    disabled={quantity === 1}
+                    onClick={() =>
+                      setQuantity((value) => Math.max(1, value - 1))
+                    }
+                    className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:text-neutral-300"
+                  >
+                    <Minus className="h-4 w-4" />
+                  </button>
+                  <span className="w-5 text-center text-sm font-semibold text-neutral-900">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Increase quantity"
+                    onClick={() => setQuantity((value) => value + 1)}
+                    className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+          {finalPrice == null && (
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-sm font-medium text-neutral-700">
+                Quantity
               </span>
-              <span className="font-semibold text-neutral-900">
-                {inr(finalPrice)}
-              </span>
+              <div className="flex items-center gap-3 rounded-xl border border-neutral-200 p-1">
+                <button
+                  type="button"
+                  aria-label="Decrease quantity"
+                  disabled
+                  className="grid h-8 w-8 place-items-center rounded-lg text-neutral-300"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-5 text-center text-sm font-semibold text-neutral-900">
+                  {quantity}
+                </span>
+                <button
+                  type="button"
+                  aria-label="Increase quantity"
+                  onClick={() => setQuantity((value) => value + 1)}
+                  className="grid h-8 w-8 place-items-center rounded-lg text-neutral-500 hover:bg-neutral-100"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
           <Button
-            disabled={!canProceed}
+            disabled={!canProceed || proceedLoading}
             onClick={handleProceed}
             className="h-12 w-full rounded-xl bg-neutral-900 text-[15px] hover:bg-neutral-800 disabled:bg-neutral-100 disabled:text-neutral-400"
           >
-            Proceed
+            {proceedLoading ? "Creating booking..." : "Proceed"}
           </Button>
         </div>
       </DialogContent>

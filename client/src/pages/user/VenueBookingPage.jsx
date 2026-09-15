@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useParams } from "react-router-dom";
 
-import { getVenuePricing, getVenues } from "@/api/user.api";
+import { createBooking, getVenuePricing, getVenues } from "@/api/user.api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import VenuePricingPage from "@/pages/user/VenuePricingPage";
@@ -47,6 +47,16 @@ const BOOKING_LABEL = {
   whole_day: "Whole day access",
   slot_based: "Slot based entry",
 };
+
+const formatBookingDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const formatBookingTime = (hour) =>
+  `${String(Number(hour)).padStart(2, "0")}:00:00`;
 
 /* --------------------------------- gallery -------------------------------- */
 
@@ -226,6 +236,7 @@ export default function VenueBookingPage({ onBook }) {
   const [pricingData, setPricingData] = useState(null);
   const [pricingOpen, setPricingOpen] = useState(false);
   const [pricingLoading, setPricingLoading] = useState(false);
+  const [bookingLoading, setBookingLoading] = useState(false);
   const [pricingError, setPricingError] = useState(null);
 
   useEffect(() => {
@@ -329,6 +340,35 @@ export default function VenueBookingPage({ onBook }) {
       setPricingError("Could not load ticket pricing. Please try again.");
     } finally {
       setPricingLoading(false);
+    }
+  };
+
+  const handleProceed = async ({ date, slot, quantity, bookingType }) => {
+    setBookingLoading(true);
+    setPricingError(null);
+
+    const payload = {
+      booking_date: formatBookingDate(date),
+      booking_type: bookingType === "whole_day" ? "whole_day" : "time_slot",
+      quantity,
+    };
+
+    if (payload.booking_type === "time_slot") {
+      const [startHour, endHour] = slot.split("-");
+      payload.start_time = formatBookingTime(startHour);
+      payload.end_time = formatBookingTime(endHour);
+    }
+
+    try {
+      await createBooking(venueId, payload);
+      setPricingOpen(false);
+    } catch (err) {
+      setPricingError(
+        err?.response?.data?.message ||
+          "Could not create your booking. Please try again.",
+      );
+    } finally {
+      setBookingLoading(false);
     }
   };
 
@@ -499,6 +539,8 @@ export default function VenueBookingPage({ onBook }) {
         pricingData={pricingData}
         open={pricingOpen}
         onOpenChange={setPricingOpen}
+        onProceed={handleProceed}
+        proceedLoading={bookingLoading}
       />
     </div>
   );

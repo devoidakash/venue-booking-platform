@@ -33,3 +33,7 @@ export async function getVenues(venueId) {
 export async function getVenuePricing(venueId) {
   return axiosInstance.get(`/venues/${venueId}/pricing`);
 }
+
+export async function createBooking(venueId, payload) {
+  return axiosInstance.post(`/venues/${venueId}/bookings`, payload);
+}
