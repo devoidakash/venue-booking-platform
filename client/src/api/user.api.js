@@ -29,3 +29,7 @@ export async function submitApplication(payload) {
 export async function getVenues(venueId) {
   return axiosInstance.get(`/venues/${venueId}`);
 }
+
+export async function getVenuePricing(venueId) {
+  return axiosInstance.get(`/venues/${venueId}/pricing`);
+}

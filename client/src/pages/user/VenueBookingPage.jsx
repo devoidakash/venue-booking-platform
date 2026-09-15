@@ -16,9 +16,10 @@ import {
 } from "lucide-react";
 import { useParams } from "react-router-dom";
 
-import { getVenues } from "@/api/user.api";
+import { getVenuePricing, getVenues } from "@/api/user.api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import VenuePricingPage from "@/pages/user/VenuePricingPage";
 import {
   Dialog,
   DialogContent,
@@ -222,6 +223,10 @@ export default function VenueBookingPage({ onBook }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expanded, setExpanded] = useState(false);
+  const [pricingData, setPricingData] = useState(null);
+  const [pricingOpen, setPricingOpen] = useState(false);
+  const [pricingLoading, setPricingLoading] = useState(false);
+  const [pricingError, setPricingError] = useState(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -305,6 +310,25 @@ export default function VenueBookingPage({ onBook }) {
       window.alert("Venue link copied to clipboard.");
     } catch {
       window.prompt("Copy this venue link:", window.location.href);
+    }
+  };
+
+  const handleBook = async () => {
+    if (onBook) {
+      onBook(venue);
+      return;
+    }
+
+    setPricingLoading(true);
+    setPricingError(null);
+    try {
+      const data = await getVenuePricing(venue.id);
+      setPricingData(data);
+      setPricingOpen(true);
+    } catch {
+      setPricingError("Could not load ticket pricing. Please try again.");
+    } finally {
+      setPricingLoading(false);
     }
   };
 
@@ -418,7 +442,8 @@ export default function VenueBookingPage({ onBook }) {
                   <p className="text-[12px] text-neutral-400">(Inc. taxes)</p>
                 </div>
                 <Button
-                  onClick={() => onBook?.(venue)}
+                  onClick={handleBook}
+                  disabled={pricingLoading}
                   className="h-11 rounded-xl bg-neutral-900 px-6 text-[15px] hover:bg-neutral-800"
                 >
                   Book tickets
@@ -455,12 +480,26 @@ export default function VenueBookingPage({ onBook }) {
           </p>
         </div>
         <Button
-          onClick={() => onBook?.(venue)}
+          onClick={handleBook}
+          disabled={pricingLoading}
           className="h-11 rounded-xl bg-neutral-900 px-7 hover:bg-neutral-800"
         >
           Book tickets
         </Button>
       </div>
+
+      {pricingError && (
+        <p className="fixed bottom-20 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700 shadow-lg">
+          {pricingError}
+        </p>
+      )}
+
+      <VenuePricingPage
+        venue={venue}
+        pricingData={pricingData}
+        open={pricingOpen}
+        onOpenChange={setPricingOpen}
+      />
     </div>
   );
 }
