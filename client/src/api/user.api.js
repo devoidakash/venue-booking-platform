@@ -37,3 +37,11 @@ export async function getVenuePricing(venueId) {
 export async function createBooking(venueId, payload) {
   return axiosInstance.post(`/venues/${venueId}/bookings`, payload);
 }
+
+export async function createPaymentOrder(bookingId) {
+  return axiosInstance.post(`/venues/bookings/${bookingId}/payment`);
+}
+
+export async function verifyPayment(bookingId, payload) {
+  return axiosInstance.post(`/bookings/${bookingId}/payment/verify`, payload);
+}

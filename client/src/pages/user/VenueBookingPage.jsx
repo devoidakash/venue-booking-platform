@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   AlertTriangle,
   MapPin,
@@ -16,10 +16,17 @@ import {
 } from "lucide-react";
 import { useParams } from "react-router-dom";
 
-import { createBooking, getVenuePricing, getVenues } from "@/api/user.api";
+import {
+  createBooking,
+  createPaymentOrder,
+  getVenuePricing,
+  getVenues,
+  verifyPayment,
+} from "@/api/user.api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import VenuePricingPage from "@/pages/user/VenuePricingPage";
+import VenuePaymentConfirmationPage from "@/pages/user/VenuePaymentConfirmationPage";
 import {
   Dialog,
   DialogContent,
@@ -237,6 +244,11 @@ export default function VenueBookingPage({ onBook }) {
   const [pricingOpen, setPricingOpen] = useState(false);
   const [pricingLoading, setPricingLoading] = useState(false);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] = useState(null);
+  const handleConfirmationClose = useCallback(
+    () => setConfirmedBooking(null),
+    [],
+  );
   const [pricingError, setPricingError] = useState(null);
 
   useEffect(() => {
@@ -348,26 +360,68 @@ export default function VenueBookingPage({ onBook }) {
     setPricingError(null);
 
     const payload = {
-      booking_date: formatBookingDate(date),
-      booking_type: bookingType === "whole_day" ? "whole_day" : "time_slot",
+      bookingDate: formatBookingDate(date),
+      bookingType: bookingType === "whole_day" ? "whole_day" : "time_slot",
       quantity,
     };
 
-    if (payload.booking_type === "time_slot") {
+    if (payload.bookingType === "time_slot") {
       const [startHour, endHour] = slot.split("-");
-      payload.start_time = formatBookingTime(startHour);
-      payload.end_time = formatBookingTime(endHour);
+      payload.startTime = formatBookingTime(startHour);
+      payload.endTime = formatBookingTime(endHour);
     }
 
     try {
-      await createBooking(venueId, payload);
+      const booking = await createBooking(venueId, payload);
+      const paymentOrder = await createPaymentOrder(booking.bookingId);
+
+      if (typeof window.Razorpay !== "function") {
+        throw new Error("Payment checkout is unavailable. Please try again.");
+      }
+
+      const razorpay = new window.Razorpay({
+        key: paymentOrder.keyId,
+        amount: paymentOrder.amount,
+        currency: paymentOrder.currency,
+        name: "Venuz",
+        description: "Venue booking",
+        order_id: paymentOrder.orderId,
+        handler: async (response) => {
+          try {
+            const confirmation = await verifyPayment(booking.bookingId, {
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+
+            setConfirmedBooking(confirmation);
+          } catch (err) {
+            setPricingError(
+              err?.response?.data?.message ||
+                "Payment verification failed. Please contact support.",
+            );
+          } finally {
+            setBookingLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setBookingLoading(false);
+          },
+        },
+        theme: {
+          color: "#171717",
+        },
+      });
+
+      razorpay.open();
       setPricingOpen(false);
     } catch (err) {
       setPricingError(
         err?.response?.data?.message ||
-          "Could not create your booking. Please try again.",
+          err.message ||
+          "Could not start payment. Please try again.",
       );
-    } finally {
       setBookingLoading(false);
     }
   };
@@ -541,6 +595,12 @@ export default function VenueBookingPage({ onBook }) {
         onOpenChange={setPricingOpen}
         onProceed={handleProceed}
         proceedLoading={bookingLoading}
+      />
+
+      <VenuePaymentConfirmationPage
+        booking={confirmedBooking}
+        open={Boolean(confirmedBooking)}
+        onClose={handleConfirmationClose}
       />
     </div>
   );

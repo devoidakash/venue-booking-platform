@@ -76,14 +76,31 @@ export async function getBookingPrice(data) {
 export async function insertWholeDayBooking(data) {
   const result = await pool.query(
     `
-  INSERT INTO bookings (user_id, venue_id, booking_date, booking_type, quantity, total_amount) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+  INSERT INTO bookings (
+  user_id,
+  venue_id,
+  booking_date,
+  booking_type,
+  quantity,
+  total_amount
+)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING
+  id AS "bookingId",
+  user_id AS "userId",
+  venue_id AS "venueId",
+  booking_date AS "bookingDate",
+  booking_type AS "bookingType",
+  quantity,
+  total_amount AS "totalAmount";
+`,
     [
       data.userId,
       data.venueId,
-      data.booking_date,
-      data.booking_type,
+      data.bookingDate,
+      data.bookingType,
       data.quantity,
-      data.total_amount,
+      data.totalAmount,
     ]
   );
   return result.rows[0];
@@ -92,7 +109,8 @@ export async function insertWholeDayBooking(data) {
 export async function getVenueTiming(venueId) {
   const result = await pool.query(
     `
-    SELECT opening_time, closing_time FROM venues WHERE id = $1`,
+    SELECT opening_time AS "openingTime", closing_time AS "closingTime"
+    FROM venues WHERE id = $1`,
     [venueId]
   );
   return result.rows[0] ?? null;
@@ -101,16 +119,37 @@ export async function getVenueTiming(venueId) {
 export async function insertTimeSlotBooking(data) {
   const result = await pool.query(
     `
-  INSERT INTO bookings (user_id, venue_id, booking_date, booking_type, quantity, start_time, end_time, total_amount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+INSERT INTO bookings (
+  user_id,
+  venue_id,
+  booking_date,
+  booking_type,
+  quantity,
+  start_time,
+  end_time,
+  total_amount
+)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+RETURNING
+  id AS "bookingId",
+  user_id AS "userId",
+  venue_id AS "venueId",
+  booking_date AS "bookingDate",
+  booking_type AS "bookingType",
+  quantity,
+  start_time AS "startTime",
+  end_time AS "endTime",
+  total_amount AS "totalAmount";
+`,
     [
       data.userId,
       data.venueId,
-      data.booking_date,
-      data.booking_type,
+      data.bookingDate,
+      data.bookingType,
       data.quantity,
-      data.start_time,
-      data.end_time,
-      data.total_amount,
+      data.startTime,
+      data.endTime,
+      data.totalAmount,
     ]
   );
   return result.rows[0];

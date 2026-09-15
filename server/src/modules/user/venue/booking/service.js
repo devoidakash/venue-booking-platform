@@ -51,7 +51,7 @@ export async function getVenuePricing(venueId) {
 }
 
 export async function createBooking(userId, venueId, data) {
-  const day = new Date(data.booking_date).getDay();
+  const day = new Date(data.bookingDate).getDay();
   const dayType = day == 0 || day == 6 ? 'weekend' : 'weekday';
 
   try {
@@ -61,15 +61,16 @@ export async function createBooking(userId, venueId, data) {
       throw new ApiError(ERROR_CONFIG.VENUE_PRICING_NOT_FOUND);
     }
 
-    if (data.booking_type === 'whole_day') {
+    if (data.bookingType === 'whole_day') {
       return await repository.insertWholeDayBooking({
         userId,
         venueId,
         ...data,
-        total_amount: price * data.quantity,
+        totalAmount: price * data.quantity,
       });
     }
-    if (data.booking_type === 'time_slot') {
+
+    if (data.bookingType === 'time_slot') {
       const timing = await repository.getVenueTiming(venueId);
 
       if (!timing) {
@@ -77,8 +78,8 @@ export async function createBooking(userId, venueId, data) {
       }
 
       if (
-        data.start_time < timing.opening_time ||
-        data.end_time > timing.closing_time
+        data.startTime < timing.openingTime ||
+        data.endTime > timing.closingTime
       ) {
         throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_TIME_INVALID);
       }
@@ -87,7 +88,7 @@ export async function createBooking(userId, venueId, data) {
         userId,
         venueId,
         ...data,
-        total_amount: price * data.quantity,
+        totalAmount: price * data.quantity,
       });
     }
   } catch (err) {
@@ -123,6 +124,7 @@ export async function createPaymentOrder(userId, bookingId) {
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
+      keyId: process.env.RAZORPAY_KEY_ID,
     };
   } catch (err) {
     console.log(err);
@@ -144,19 +146,23 @@ export async function verifyPayment(userId, bookingId, data) {
       throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
     }
 
-    const body = `${payment.gateway_order_id}|${data.razorpay_payment_id}`;
+    if (payment.gateway_order_id !== data.razorpayOrderId) {
+      throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
+    }
+
+    const body = `${payment.gateway_order_id}|${data.razorpayPaymentId}`;
 
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
       .update(body)
       .digest('hex');
 
-    if (expectedSignature !== data.razorpay_signature) {
+    if (expectedSignature !== data.razorpaySignature) {
       throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
     }
 
     const verifiedPayment = await razorpay.payments.fetch(
-      data.razorpay_payment_id
+      data.razorpayPaymentId
     );
 
     if (verifiedPayment.status !== 'captured') {
@@ -167,7 +173,7 @@ export async function verifyPayment(userId, bookingId, data) {
       await repository.markPaymentPaid(
         client,
         payment.id,
-        data.razorpay_payment_id
+        data.razorpayPaymentId
       );
       return await repository.confirmBooking(client, bookingId);
     });

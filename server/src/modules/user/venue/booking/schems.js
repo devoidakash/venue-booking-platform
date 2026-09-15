@@ -10,36 +10,36 @@ const timeSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/, 'Invalid time format');
 
-export const createBooking = z.discriminatedUnion('booking_type', [
+export const createBooking = z.discriminatedUnion('bookingType', [
   z.object({
-    booking_date: z.coerce.date(),
-    booking_type: z.literal('whole_day'),
+    bookingDate: z.coerce.date(),
+    bookingType: z.literal('whole_day'),
     quantity: z.number().int().positive(),
   }),
 
   z
     .object({
-      booking_date: z.coerce.date(),
-      booking_type: z.literal('time_slot'),
+      bookingDate: z.coerce.date(),
+      bookingType: z.literal('time_slot'),
       quantity: z.number().int().positive(),
-      start_time: timeSchema,
-      end_time: timeSchema,
+      startTime: timeSchema,
+      endTime: timeSchema,
     })
     .refine(
-      ({ start_time, end_time }) => {
+      ({ startTime, endTime }) => {
         const toMinutes = (time) => {
           const [hours, minutes] = time.split(':').map(Number);
           return hours * 60 + minutes;
         };
 
-        const start = toMinutes(start_time);
-        const end = toMinutes(end_time);
+        const start = toMinutes(startTime);
+        const end = toMinutes(endTime);
 
         return end - start === 60;
       },
       {
         message: 'Time slot must be exactly 60 minutes',
-        path: ['end_time'],
+        path: ['endTime'],
       }
     ),
 ]);
@@ -51,6 +51,7 @@ export const bookingId = z.object({
 });
 
 export const verifyPayment = z.object({
-  razorpay_payment_id: z.string().trim().min(1),
-  razorpay_signature: z.string().trim().min(1),
+  razorpayPaymentId: z.string().trim().min(1),
+  razorpayOrderId: z.string().trim().min(1),
+  razorpaySignature: z.string().trim().min(1),
 });
