@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { getMe } from "@/api/user.api";
+import { getMe, logout } from "@/api/user.api";
 import Logo from "@/assets/logo.svg";
 
 const CITIES = [
@@ -65,6 +65,15 @@ function XIcon(props) {
 
 function SiteHeader({ location, onLocationChange }) {
   const [user, setUser] = useState(null);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      setUser(null);
+      window.location.href = "/";
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -154,10 +163,24 @@ function SiteHeader({ location, onLocationChange }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem>Sign in</DropdownMenuItem>
-                <DropdownMenuItem>My bookings</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Help</DropdownMenuItem>
+                {user ? (
+                  <>
+                    <DropdownMenuItem>My bookings</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Help</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onSelect={handleLogout}>
+                      Logout
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem>Sign in</DropdownMenuItem>
+                    <DropdownMenuItem>My bookings</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>Help</DropdownMenuItem>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
