@@ -2,6 +2,10 @@ import { pool } from '../../../../infrastructure/database/db.js';
 import ApiError from '../../../../utils/api.error.js';
 import { getPrivateUrl } from '../../../../utils/r2.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
+import {
+  sendVendorApprovalMail,
+  sendVendorRejectionMail,
+} from '../../email.service.js';
 import { APPLICATION_ERROR_CONFIG } from './error.config.js';
 import * as repository from './repository.js';
 
@@ -38,7 +42,7 @@ export async function updateApplication(reviewerId, applicationId, data) {
 }
 
 async function handleApproved(reviewerId, applicationId) {
-  await withTransaction(pool, async (client) => {
+  const emailInfo = await withTransaction(pool, async (client) => {
     const application = await repository.markVendorAsApproved(client, {
       applicationId,
       status: 'approved',
@@ -50,8 +54,18 @@ async function handleApproved(reviewerId, applicationId) {
     }
 
     await repository.createVendorProfile(client, application);
-    await repository.markUserAsVendor(client, application.user_id);
+    const email = await repository.markUserAsVendor(
+      client,
+      application.user_id
+    );
+    return { email, vendorName: application.pan_name };
   });
+  try {
+    await sendVendorApprovalMail(emailInfo);
+    return;
+  } catch (error) {
+    throw new ApiError(APPLICATION_ERROR_CONFIG.EMAIL_SEND_FAILED);
+  }
 }
 
 async function handleRejected(reviewerId, applicationId, rejectionReason) {
@@ -64,6 +78,17 @@ async function handleRejected(reviewerId, applicationId, rejectionReason) {
   if (!application) {
     throw new ApiError(APPLICATION_ERROR_CONFIG.APPLICATION_NOT_PENDING);
   }
+
+  try {
+    await sendVendorRejectionMail({
+      email: application.email,
+      vendorName: application.pan_name,
+      rejectionReason: application.rejection_reason,
+    });
+  } catch (error) {
+    throw new ApiError(APPLICATION_ERROR_CONFIG.EMAIL_SEND_FAILED);
+  }
+
   return application;
 }
 

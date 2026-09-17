@@ -51,25 +51,36 @@ export async function createVendorProfile(client, data) {
 }
 
 export async function markUserAsVendor(client, id) {
-  await client.query(
+  const result = await client.query(
     `
       UPDATE users 
       SET role = 'vendor'
-      WHERE id = $1`,
+      WHERE id = $1 
+      RETURNING email`,
     [id]
   );
+
+  return result.rows[0]?.email ?? null;
 }
 
 export async function markVendorAsRejected(client, data) {
   const result = await client.query(
-    `UPDATE vendor_applications
-     SET status = 'rejected',
-         rejection_reason = $1,
-         reviewed_at = NOW(),
-         reviewed_by = $2
-     WHERE id = $3
-       AND status = 'pending'
-     RETURNING id`,
+    `WITH rejected AS (
+       UPDATE vendor_applications
+       SET status = 'rejected',
+           rejection_reason = $1,
+           reviewed_at = NOW(),
+           reviewed_by = $2
+       WHERE id = $3
+         AND status = 'pending'
+       RETURNING id, user_id, pan_name, rejection_reason
+     )
+     SELECT rejected.id,
+            rejected.pan_name,
+            rejected.rejection_reason,
+            users.email
+     FROM rejected
+     JOIN users ON users.id = rejected.user_id`,
     [data.rejectionReason, data.reviewerId, data.applicationId]
   );
 

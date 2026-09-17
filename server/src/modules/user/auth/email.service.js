@@ -4,17 +4,17 @@ import { generateOtpTemplate } from '../../../infrastructure/email/templates/otp
 import ApiError from '../../../utils/api.error.js';
 
 export default async function sendOtpEmail(email, otp) {
-  // try {
-  //   const response = await resend.emails.send({
-  //     from: 'Venuz <onboarding@resend.dev>',
-  //     to: email,
-  //     subject: 'Your Venuz Verification Code',
-  //     html: generateOtpTemplate(otp),
-  //   });
+  try {
+    const response = await resend.emails.send({
+      from: 'Venuz <noreply@venuz.shop>',
+      to: email,
+      subject: 'Your Venuz Verification Code',
+      html: generateOtpTemplate(otp),
+    });
 
-  //   return response;
-  // } catch (error) {
-  //   throw new ApiError(ERROR_CONFIG.EMAIL_SEND_FAILED);
-  // }
-  console.log(otp);
+    console.log(otp);
+    return response;
+  } catch (error) {
+    throw new ApiError(ERROR_CONFIG.EMAIL_SEND_FAILED);
+  }
 }
