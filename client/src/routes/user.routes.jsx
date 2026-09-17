@@ -1,4 +1,5 @@
 import HomePage from "@/pages/user/HomePage";
+import AllVenuesPage from "@/pages/user/AllVenuesPage";
 import LoginPage from "@/pages/user/LoginPage";
 import VenueBookingPage from "@/pages/user/VenueBookingPage";
 import VenuePaymentConfirmationPage from "@/pages/user/VenuePaymentConfirmationPage";
@@ -6,7 +7,11 @@ import VenuePaymentConfirmationPage from "@/pages/user/VenuePaymentConfirmationP
 export const userRoutes = [
   {
     path: "/",
-    element: <HomePage />,
+    element: (
+      <HomePage>
+        <AllVenuesPage />
+      </HomePage>
+    ),
   },
   {
     path: "/login",

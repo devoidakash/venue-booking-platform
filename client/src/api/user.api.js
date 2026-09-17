@@ -26,7 +26,11 @@ export async function submitApplication(payload) {
   return axiosInstance.post("/application", payload);
 }
 
-export async function getVenues(venueId) {
+export async function getVenues() {
+  return axiosInstance.get("/venues");
+}
+
+export async function getVenue(venueId) {
   return axiosInstance.get(`/venues/${venueId}`);
 }
 

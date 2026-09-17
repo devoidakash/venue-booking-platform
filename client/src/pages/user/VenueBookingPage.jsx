@@ -20,7 +20,7 @@ import {
   createBooking,
   createPaymentOrder,
   getVenuePricing,
-  getVenues,
+  getVenue,
   verifyPayment,
 } from "@/api/user.api";
 import { Button } from "@/components/ui/button";
@@ -258,7 +258,7 @@ export default function VenueBookingPage({ onBook }) {
       setLoading(true);
       setError(null);
       try {
-        const data = await getVenues(venueId);
+        const data = await getVenue(venueId);
         if (isMounted) setVenue(data);
       } catch {
         if (isMounted) setError("Couldn't load this venue. Please try again.");
