@@ -373,7 +373,7 @@ export default function VenueBookingPage({ onBook }) {
 
     try {
       const booking = await createBooking(venueId, payload);
-      const paymentOrder = await createPaymentOrder(booking.bookingId);
+      const paymentOrder = await createPaymentOrder(booking.id);
 
       if (typeof window.Razorpay !== "function") {
         throw new Error("Payment checkout is unavailable. Please try again.");
@@ -388,7 +388,7 @@ export default function VenueBookingPage({ onBook }) {
         order_id: paymentOrder.orderId,
         handler: async (response) => {
           try {
-            const confirmation = await verifyPayment(booking.bookingId, {
+            const confirmation = await verifyPayment(booking.id, {
               razorpayPaymentId: response.razorpay_payment_id,
               razorpayOrderId: response.razorpay_order_id,
               razorpaySignature: response.razorpay_signature,

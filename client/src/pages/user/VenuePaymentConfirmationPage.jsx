@@ -69,7 +69,7 @@ export default function VenuePaymentConfirmationPage({
             <div className="rounded-xl bg-neutral-50 p-4">
               <p className="text-xs text-neutral-500">Visit date</p>
               <p className="mt-1 text-sm font-medium text-neutral-900">
-                {formatDate(booking?.booking_date)}
+                {formatDate(booking?.bookingDate)}
               </p>
             </div>
             <div className="rounded-xl bg-neutral-50 p-4">
@@ -82,7 +82,7 @@ export default function VenuePaymentConfirmationPage({
             <div className="rounded-xl bg-neutral-50 p-4">
               <p className="text-xs text-neutral-500">Amount paid</p>
               <p className="mt-1 text-sm font-medium text-neutral-900">
-                {formatCurrency(booking?.total_amount)}
+                {formatCurrency(booking?.totalAmount)}
               </p>
             </div>
           </div>

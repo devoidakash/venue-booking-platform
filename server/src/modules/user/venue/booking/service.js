@@ -36,7 +36,7 @@ export async function getVenue(venueId) {
 }
 
 export async function getVenuePricing(venueId) {
-  const bookingType = await repository.getVenueBookingType(venueId);
+  const { bookingType } = await repository.getVenueBookingType(venueId);
 
   if (!bookingType) {
     throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);

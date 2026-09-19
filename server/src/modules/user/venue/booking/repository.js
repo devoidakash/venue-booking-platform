@@ -245,7 +245,7 @@ export async function fetchBookingsHistory(userId) {
     FROM bookings b
     JOIN venues v ON v.id = b.venue_id
     WHERE b.user_id = $1
-    ORDER BY b.booking_date DESC
+    ORDER BY b.booking_date DESC, b.created_at DESC
     `,
     [userId]
   );
