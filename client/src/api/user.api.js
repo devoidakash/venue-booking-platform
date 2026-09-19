@@ -49,3 +49,7 @@ export async function createPaymentOrder(bookingId) {
 export async function verifyPayment(bookingId, payload) {
   return axiosInstance.post(`/bookings/${bookingId}/payment/verify`, payload);
 }
+
+export async function getBookingHistory() {
+  return axiosInstance.get("/bookings/history");
+}

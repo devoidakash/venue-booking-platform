@@ -46,4 +46,6 @@ router.post(
   controller.verifyPayment
 );
 
+router.get('/bookings/history', controller.getBookingHistory);
+
 export default router;

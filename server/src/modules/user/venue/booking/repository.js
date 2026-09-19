@@ -226,3 +226,29 @@ export async function confirmBooking(client, bookingId) {
 
   return toCamelCase(result.rows[0]);
 }
+
+export async function fetchBookingsHistory(userId) {
+  const result = await pool.query(
+    `
+    SELECT 
+      b.id AS booking_id,
+      b.venue_id,
+      v.name AS venue_name,
+      v.category AS venue_category,
+      b.booking_date,
+      b.booking_type,
+      b.quantity,
+      b.start_time,
+      b.end_time,
+      b.total_amount,
+      b.status AS booking_status
+    FROM bookings b
+    JOIN venues v ON v.id = b.venue_id
+    WHERE b.user_id = $1
+    ORDER BY b.booking_date DESC
+    `,
+    [userId]
+  );
+
+  return result.rows.map((row) => toCamelCase(row));
+}

@@ -49,7 +49,7 @@ function VenueCard({ venue }) {
             </h2>
           </div>
           <p className="shrink-0 text-right text-sm font-semibold text-slate-900">
-            {formatPrice(venue.starting_price)}
+            {formatPrice(venue.startingPrice)}
           </p>
         </div>
 
@@ -60,13 +60,13 @@ function VenueCard({ venue }) {
           </p>
           <p className="flex items-center gap-2">
             <Clock3 className="h-4 w-4 shrink-0 text-violet-600" />
-            {toTime(venue.opening_time)} - {toTime(venue.closing_time)}
+            {toTime(venue.openingTime)} - {toTime(venue.closingTime)}
           </p>
         </div>
 
         <div className="flex items-center justify-between border-t border-slate-100 pt-4">
           <span className="text-sm text-slate-500">
-            {toTitle(venue.booking_type)}
+            {toTitle(venue.bookingType)}
           </span>
           <Button
             asChild

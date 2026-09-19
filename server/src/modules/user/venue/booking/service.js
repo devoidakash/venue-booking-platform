@@ -185,3 +185,7 @@ export async function verifyPayment(userId, bookingId, data) {
     throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
   }
 }
+
+export async function getBookingHistory(userId) {
+  return await repository.fetchBookingsHistory(userId);
+}

@@ -66,3 +66,12 @@ export async function verifyPayment(req, res) {
     data,
   });
 }
+
+export async function getBookingHistory(req, res) {
+  const data = await service.getBookingHistory(req.user.id);
+  res.status(200).json({
+    success: true,
+    message: 'Booking history fetched successfully',
+    data,
+  });
+}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   MapPin,
   Search,
@@ -165,7 +166,9 @@ function SiteHeader({ location, onLocationChange }) {
               <DropdownMenuContent align="end" className="w-48">
                 {user ? (
                   <>
-                    <DropdownMenuItem>My bookings</DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/bookings">My bookings</Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>Help</DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -176,7 +179,9 @@ function SiteHeader({ location, onLocationChange }) {
                 ) : (
                   <>
                     <DropdownMenuItem>Sign in</DropdownMenuItem>
-                    <DropdownMenuItem>My bookings</DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/bookings">My bookings</Link>
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>Help</DropdownMenuItem>
                   </>
