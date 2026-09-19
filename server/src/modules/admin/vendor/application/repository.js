@@ -1,3 +1,21 @@
+import { pool } from '../../../../infrastructure/database/db.js';
+
+export async function fetchApplicationsCounts() {
+  const result = await pool.query(
+    `SELECT 
+    COUNT(*)  FILTER (WHERE status = 'pending') AS pending,
+    COUNT(*) FILTER (WHERE status = 'approved') AS approved,
+    COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
+    FROM vendor_applications`
+  );
+
+  return {
+    pending: Number(result.rows[0].pending),
+    approved: Number(result.rows[0].approved),
+    rejected: Number(result.rows[0].rejected),
+  };
+}
+
 export async function findApplicationsByStatus(client, status) {
   const result = await client.query(
     `SELECT 
@@ -85,22 +103,6 @@ export async function markVendorAsRejected(client, data) {
   );
 
   return result.rows[0] ?? null;
-}
-
-export async function getStatusCount(client) {
-  const result = await client.query(
-    `SELECT 
-    COUNT(*)  FILTER (WHERE status = 'pending') AS pending,
-    COUNT(*) FILTER (WHERE status = 'approved') AS approved,
-    COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
-    FROM vendor_applications`
-  );
-
-  return {
-    pending: Number(result.rows[0].pending),
-    approved: Number(result.rows[0].approved),
-    rejected: Number(result.rows[0].rejected),
-  };
 }
 
 export async function findVendorById(client, vendorId) {

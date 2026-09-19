@@ -6,7 +6,7 @@ import * as schema from './schema.js';
 
 const router = express.Router();
 
-router.get('/venue/applications/count', controller.getApplicationsCounts);
+router.get('/venue/applications/counts', controller.getApplicationsCounts);
 
 router.get(
   '/venue/applications',
@@ -24,7 +24,7 @@ router.patch(
   '/venue/applications/:applicationId',
   validateSchema(schema.applicationId, 'params'),
   validateSchema(schema.review, 'body'),
-  controller.updateApplication
+  controller.reviewApplication
 );
 
 export default router;

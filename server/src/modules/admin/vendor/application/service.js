@@ -9,6 +9,10 @@ import {
 import { APPLICATION_ERROR_CONFIG } from './error.config.js';
 import * as repository from './repository.js';
 
+export async function getApplicationsCounts() {
+  return repository.fetchApplicationsCounts();
+}
+
 export async function getApplications(status) {
   const applications = await repository.findApplicationsByStatus(pool, status);
 
@@ -90,10 +94,6 @@ async function handleRejected(reviewerId, applicationId, rejectionReason) {
   }
 
   return application;
-}
-
-export async function getApplicationsCount() {
-  return repository.getStatusCount(pool);
 }
 
 export async function getVendorProfile(vendorId) {

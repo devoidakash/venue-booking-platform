@@ -6,6 +6,8 @@ import * as schema from './schema.js';
 
 const router = express.Router();
 
+router.get('/vendor/applications/counts', controller.getApplicationsCounts);
+
 router.get(
   '/vendor/applications',
   validateSchema(schema.status, 'query'),
@@ -18,8 +20,6 @@ router.patch(
   validateSchema(schema.review, 'body'),
   controller.updateApplication
 );
-
-router.get('/vendor/applications/counts', controller.getApplicationsCount);
 
 router.get(
   '/vendor/:vendorId',
