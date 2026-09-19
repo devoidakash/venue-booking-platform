@@ -66,7 +66,7 @@ export default function VenueReviewApplicationPage() {
     try {
       await reviewVenueApplication(id, {
         status: "rejected",
-        rejection_reason: rejectionReason,
+        rejectionReason: rejectionReason,
       });
       navigate("..", { relative: "path" });
     } catch {

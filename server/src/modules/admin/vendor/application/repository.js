@@ -3,6 +3,7 @@ import { pool } from '../../../../infrastructure/database/db.js';
 export async function fetchApplicationsCounts() {
   const result = await pool.query(
     `SELECT 
+    COUNT (DISTINCT id) AS total_applications,
     COUNT(*)  FILTER (WHERE status = 'pending') AS pending,
     COUNT(*) FILTER (WHERE status = 'approved') AS approved,
     COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
@@ -10,6 +11,7 @@ export async function fetchApplicationsCounts() {
   );
 
   return {
+    totalApplications: Number(result.rows[0].total_applications),
     pending: Number(result.rows[0].pending),
     approved: Number(result.rows[0].approved),
     rejected: Number(result.rows[0].rejected),

@@ -38,6 +38,7 @@ export default function ApplicationStatusOverview({
 }) {
   const navigate = useNavigate();
   const [counts, setCounts] = useState({
+    totalApplications: null,
     pending: null,
     approved: null,
     rejected: null,
@@ -53,9 +54,12 @@ export default function ApplicationStatusOverview({
       setError(null);
 
       try {
-        const { pending, approved, rejected } = await fetchCounts();
-        if (isMounted) setCounts({ pending, approved, rejected });
-      } catch (err) {
+        const { totalApplications, pending, approved, rejected } =
+          await fetchCounts();
+        if (isMounted) {
+          setCounts({ totalApplications, pending, approved, rejected });
+        }
+      } catch {
         if (isMounted)
           setError(`Couldn't load ${entityLabel} counts. Try refreshing.`);
       } finally {
@@ -70,10 +74,7 @@ export default function ApplicationStatusOverview({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchCounts]);
 
-  const total =
-    loading || error
-      ? null
-      : (counts.pending ?? 0) + (counts.approved ?? 0) + (counts.rejected ?? 0);
+  const total = loading || error ? null : counts.totalApplications;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">
