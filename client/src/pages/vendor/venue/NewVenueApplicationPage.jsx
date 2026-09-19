@@ -27,11 +27,6 @@ const ALLOWED_STATES = [
   "Goa",
   "Gujarat",
   "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Tamil Nadu",
-  "Telangana",
 ];
 
 const CATEGORIES = [

@@ -39,11 +39,6 @@ const STATES = [
   "Goa",
   "Gujarat",
   "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Tamil Nadu",
-  "Telangana",
 ];
 
 function Field({ label, error, children, className = "" }) {

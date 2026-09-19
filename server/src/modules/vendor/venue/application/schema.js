@@ -13,11 +13,6 @@ const ALLOWED_STATES = [
   'Goa',
   'Gujarat',
   'Karnataka',
-  'Kerala',
-  'Madhya Pradesh',
-  'Maharashtra',
-  'Tamil Nadu',
-  'Telangana',
 ];
 
 const schema = z.object({
@@ -35,7 +30,7 @@ const schema = z.object({
 
   state: z.enum(ALLOWED_STATES, {
     message:
-      'State must be Chhattisgarh, Mumbai, Delhi, Gujarat or Madhya Pradesh',
+      'State must be Chhattisgarh, Andhra Pradesh, Goa, Gujarat or Karnataka Pradesh',
   }),
 
   pincode: z
