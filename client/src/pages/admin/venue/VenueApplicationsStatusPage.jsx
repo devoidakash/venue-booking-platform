@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getVenueApplications } from "@/api/admin.api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 function formatDateTime(iso) {
   if (!iso) return "—";
@@ -143,8 +143,10 @@ function ApplicationSkeleton() {
 
 // --- MAIN PAGE COMPONENT ---
 
-export default function VenueApplicationsStatusPage({ status = "pending" }) {
+export default function VenueApplicationsStatusPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const status = searchParams.get("status") || "pending";
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

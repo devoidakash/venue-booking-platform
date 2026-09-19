@@ -23,17 +23,17 @@ const adminNavigationLinks = [
     icon: UserPlus,
     children: [
       {
-        to: "/admin/vendor/applications/pending",
+        to: "/admin/vendor/applications?status=pending",
         label: "Pending",
         icon: Clock3,
       },
       {
-        to: "/admin/vendor/applications/approved",
+        to: "/admin/vendor/applications?status=approved",
         label: "Approved",
         icon: CircleCheck,
       },
       {
-        to: "/admin/vendor/applications/rejected",
+        to: "/admin/vendor/applications?status=rejected",
         label: "Rejected",
         icon: CircleX,
       },
@@ -45,17 +45,17 @@ const adminNavigationLinks = [
     icon: Building2,
     children: [
       {
-        to: "/admin/venue/applications/pending",
+        to: "/admin/venue/applications?status=pending",
         label: "Pending",
         icon: Clock3,
       },
       {
-        to: "/admin/venue/applications/approved",
+        to: "/admin/venue/applications?status=approved",
         label: "Approved",
         icon: CircleCheck,
       },
       {
-        to: "/admin/venue/applications/rejected",
+        to: "/admin/venue/applications?status=rejected",
         label: "Rejected",
         icon: CircleX,
       },

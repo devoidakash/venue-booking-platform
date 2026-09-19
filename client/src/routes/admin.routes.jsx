@@ -23,19 +23,7 @@ export const adminRoutes = [
         children: [
           {
             index: true,
-            element: <VendorApplicationsPage status="pending" />,
-          },
-          {
-            path: "pending",
-            element: <VendorApplicationsPage status="pending" />,
-          },
-          {
-            path: "approved",
-            element: <VendorApplicationsPage status="approved" />,
-          },
-          {
-            path: "rejected",
-            element: <VendorApplicationsPage status="rejected" />,
+            element: <VendorApplicationsPage />,
           },
         ],
       },
@@ -44,19 +32,7 @@ export const adminRoutes = [
         children: [
           {
             index: true,
-            element: <VenueApplicationsStatusPage status="pending" />,
-          },
-          {
-            path: "pending",
-            element: <VenueApplicationsStatusPage status="pending" />,
-          },
-          {
-            path: "approved",
-            element: <VenueApplicationsStatusPage status="approved" />,
-          },
-          {
-            path: "rejected",
-            element: <VenueApplicationsStatusPage status="rejected" />,
+            element: <VenueApplicationsStatusPage />,
           },
           {
             path: ":applicationId",
