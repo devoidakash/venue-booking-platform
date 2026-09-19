@@ -14,4 +14,9 @@ export const APPLICATION_ERROR_CONFIG = {
     message: 'Venue application not found',
     code: 'VENUE_APPLICATION_NOT_FOUND',
   },
+  EMAIL_SEND_FAILED: {
+    statusCode: 502,
+    message: 'Failed to send application notification email',
+    code: 'EMAIL_SEND_FAILED',
+  },
 };

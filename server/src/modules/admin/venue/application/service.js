@@ -2,6 +2,10 @@ import { pool } from '../../../../infrastructure/database/db.js';
 import ApiError from '../../../../utils/api.error.js';
 import { getPrivateUrl } from '../../../../utils/r2.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
+import {
+  sendVenueApprovalMail,
+  sendVenueRejectionMail,
+} from '../../email.service.js';
 import { APPLICATION_ERROR_CONFIG } from './error.config.js';
 import * as repository from './repository.js';
 
@@ -74,7 +78,7 @@ export async function getApplication(applicationId) {
   };
 }
 
-export async function updateApplication(reviewerId, applicationId, data) {
+export async function reviewApplication(reviewerId, applicationId, data) {
   if (data.status === 'rejected') {
     const result = await repository.markVenueAsRejected(
       reviewerId,
@@ -85,9 +89,21 @@ export async function updateApplication(reviewerId, applicationId, data) {
     if (!result) {
       throw new ApiError(APPLICATION_ERROR_CONFIG.APPLICATION_NOT_PENDING);
     }
-    return result;
+
+    try {
+      await sendVenueRejectionMail({
+        email: result.email,
+        vendorName: result.vendorName,
+        venueName: result.name,
+        rejectionReason: result.rejectionReason,
+      });
+    } catch (error) {
+      throw new ApiError(APPLICATION_ERROR_CONFIG.EMAIL_SEND_FAILED);
+    }
+
+    return { id: result.id };
   }
-  return withTransaction(pool, async (client) => {
+  const result = await withTransaction(pool, async (client) => {
     const result = await repository.markVenueAsApproved(
       client,
       reviewerId,
@@ -96,8 +112,23 @@ export async function updateApplication(reviewerId, applicationId, data) {
     if (!result) {
       throw new ApiError(APPLICATION_ERROR_CONFIG.APPLICATION_NOT_PENDING);
     }
-    return repository.createVenue(client, result);
+    const vendor = await repository.findVendorContact(client, result.vendorId);
+    const venue = await repository.createVenue(client, result);
+    return {
+      venue,
+      email: vendor.email,
+      vendorName: vendor.vendorName,
+      venueName: result.name,
+    };
   });
+
+  try {
+    await sendVenueApprovalMail(result);
+  } catch (error) {
+    throw new ApiError(APPLICATION_ERROR_CONFIG.EMAIL_SEND_FAILED);
+  }
+
+  return result.venue;
 }
 
 export async function getApplicationsCounts() {

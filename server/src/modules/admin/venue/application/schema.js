@@ -41,7 +41,7 @@ export const review = z
         })
       ),
 
-    rejection_reason: z
+    rejectionReason: z
       .enum(REJECTION_REASONS, {
         message: 'Invalid rejection reason',
       })
@@ -50,14 +50,14 @@ export const review = z
   .refine(
     (data) => {
       if (data.status === 'rejected') {
-        return !!data.rejection_reason;
+        return !!data.rejectionReason;
       }
 
-      return !data.rejection_reason;
+      return !data.rejectionReason;
     },
     {
       message:
         'Rejection reason is required when status is rejected and forbidden otherwise',
-      path: ['rejection_reason'],
+      path: ['rejectionReason'],
     }
   );

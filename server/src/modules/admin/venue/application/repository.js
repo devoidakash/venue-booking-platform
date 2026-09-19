@@ -1,7 +1,7 @@
 import { pool } from '../../../../infrastructure/database/db.js';
+import toCamelCase from '../../../../utils/camelcase.conversion.js';
 
 export async function fetchApplications(status) {
-  const statusFilter = status ?? null;
   const result = await pool.query(
     `
   SELECT * FROM (
@@ -17,7 +17,7 @@ export async function fetchApplications(status) {
   ) AS latest_per_group
   WHERE status = $1
   ORDER BY submitted_at ASC`,
-    [statusFilter]
+    [status]
   );
   return result.rows;
 }
@@ -66,10 +66,33 @@ export async function fetchApplication(applicationId) {
 
 export async function markVenueAsRejected(reviewerId, applicationId, data) {
   const result = await pool.query(
-    `UPDATE venue_applications SET status = 'rejected', rejection_reason = $1, reviewed_at = NOW(), reviewed_by = $2 WHERE id = $3 AND status = 'pending' RETURNING id`,
-    [data.rejection_reason, reviewerId, applicationId]
+    `WITH updated AS (
+      UPDATE venue_applications
+      SET status = 'rejected', 
+      rejection_reason = $1, 
+      reviewed_at = NOW(), 
+      reviewed_by = $2
+      WHERE id = $3 AND status = 'pending'
+      RETURNING id, vendor_id, name, rejection_reason
+    )
+    SELECT updated.*, vp.vendor_name, u.email
+    FROM updated
+    JOIN vendor_profiles vp ON vp.id = updated.vendor_id
+    JOIN users u ON u.id = vp.user_id`,
+    [data.rejectionReason, reviewerId, applicationId]
   );
-  return result.rows[0] ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
+}
+
+export async function findVendorContact(client, vendorId) {
+  const result = await client.query(
+    `SELECT vp.vendor_name, u.email
+     FROM vendor_profiles vp
+     JOIN users u ON u.id = vp.user_id
+     WHERE vp.id = $1`,
+    [vendorId]
+  );
+  return toCamelCase(result.rows[0]) ?? null;
 }
 
 export async function markVenueAsApproved(client, reviewerId, applicationId) {
@@ -80,7 +103,7 @@ export async function markVenueAsApproved(client, reviewerId, applicationId) {
     RETURNING id, vendor_id, name, category, address, district, state, pincode, geo_loc`,
     [reviewerId, applicationId]
   );
-  return result.rows[0] ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
 }
 
 export async function createVenue(client, data) {
@@ -88,7 +111,7 @@ export async function createVenue(client, data) {
     `INSERT INTO venues(vendor_id, application_id, name, category, address, district, state, pincode, geo_loc)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
     [
-      data.vendor_id,
+      data.vendorId,
       data.id,
       data.name,
       data.category,
@@ -96,7 +119,7 @@ export async function createVenue(client, data) {
       data.district,
       data.state,
       data.pincode,
-      data.geo_loc,
+      data.geoLoc,
     ]
   );
   return result.rows[0];
@@ -104,14 +127,20 @@ export async function createVenue(client, data) {
 
 export async function fetchApplicationsCounts() {
   const result = await pool.query(`
-  SELECT
-  COUNT(*) FILTER (WHERE status = 'pending') AS pending,
-  COUNT(*) FILTER (WHERE status = 'approved') AS approved,
-  COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
-  FROM venue_applications`);
+    SELECT
+      COUNT(DISTINCT venue_group_id) AS total_applications,
+      COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+      COUNT(*) FILTER (WHERE status = 'approved') AS approved,
+      COUNT(*) FILTER (WHERE status = 'rejected') AS rejected
+    FROM venue_applications
+  `);
+
+  const row = result.rows[0];
+
   return {
-    pending: Number(result.rows[0].pending),
-    approved: Number(result.rows[0].approved),
-    rejected: Number(result.rows[0].rejected),
+    totalApplications: Number(row.total_applications),
+    pending: Number(row.pending),
+    approved: Number(row.approved),
+    rejected: Number(row.rejected),
   };
 }
