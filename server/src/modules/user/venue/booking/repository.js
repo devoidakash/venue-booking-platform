@@ -1,4 +1,5 @@
 import { pool } from '../../../../infrastructure/database/db.js';
+import toCamelCase from '../../../../utils/camelcase.conversion.js';
 
 export async function getVenues() {
   const result = await pool.query(`
@@ -8,7 +9,7 @@ export async function getVenues() {
         WHERE v.status = 'live'
         GROUP BY v.id, v.vendor_id, v.name, v.category, v.district, v.state, v.booking_type, v.opening_time, v.closing_time
     `);
-  return result.rows;
+  return result.rows.map((row) => toCamelCase(row));
 }
 
 export async function getVenue(venueId) {
@@ -24,18 +25,18 @@ export async function getVenue(venueId) {
   v.pincode,
   ST_Y(v.geo_loc::geometry) AS latitude,
   ST_X(v.geo_loc::geometry) AS longitude,
-  v.booking_type as "bookingType",
-  v.opening_time as "openingTime",
-  v.closing_time as "closingTime",
+  v.booking_type,
+  v.opening_time,
+  v.closing_time,
   v.images,
-  vp."startingPrice" 
+  vp.starting_price
 
 FROM venues v
 
 JOIN (
   SELECT
     venue_id,
-    MIN(price) AS "startingPrice"
+    MIN(price) AS starting_price
   FROM venue_pricing
   GROUP BY venue_id
 ) vp ON vp.venue_id = v.id
@@ -43,7 +44,7 @@ JOIN (
 WHERE v.id = $1 AND v.status = 'live'`,
     [venueId]
   );
-  return result.rows[0];
+  return toCamelCase(result.rows[0]);
 }
 
 export async function getVenueBookingType(venueId) {
@@ -52,7 +53,7 @@ export async function getVenueBookingType(venueId) {
     SELECT booking_type FROM venues WHERE id = $1`,
     [venueId]
   );
-  return result.rows[0]?.booking_type;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function getVenuePricing(venueId) {
@@ -61,7 +62,7 @@ export async function getVenuePricing(venueId) {
   SELECT venue_id, day_type, duration_minutes, price FROM venue_pricing WHERE venue_id = $1`,
     [venueId]
   );
-  return result.rows;
+  return result.rows.map((row) => toCamelCase(row));
 }
 
 export async function getBookingPrice(data) {
@@ -86,13 +87,13 @@ export async function insertWholeDayBooking(data) {
 )
 VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING
-  id AS "bookingId",
-  user_id AS "userId",
-  venue_id AS "venueId",
-  booking_date AS "bookingDate",
-  booking_type AS "bookingType",
+  id,
+  user_id,
+  venue_id,
+  booking_date,
+  booking_type,
   quantity,
-  total_amount AS "totalAmount";
+  total_amount;
 `,
     [
       data.userId,
@@ -103,17 +104,17 @@ RETURNING
       data.totalAmount,
     ]
   );
-  return result.rows[0];
+  return toCamelCase(result.rows[0]);
 }
 
 export async function getVenueTiming(venueId) {
   const result = await pool.query(
     `
-    SELECT opening_time AS "openingTime", closing_time AS "closingTime"
+    SELECT opening_time, closing_time
     FROM venues WHERE id = $1`,
     [venueId]
   );
-  return result.rows[0] ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
 }
 
 export async function insertTimeSlotBooking(data) {
@@ -131,15 +132,15 @@ INSERT INTO bookings (
 )
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 RETURNING
-  id AS "bookingId",
-  user_id AS "userId",
-  venue_id AS "venueId",
-  booking_date AS "bookingDate",
-  booking_type AS "bookingType",
+  id,
+  user_id,
+  venue_id,
+  booking_date,
+  booking_type,
   quantity,
-  start_time AS "startTime",
-  end_time AS "endTime",
-  total_amount AS "totalAmount";
+  start_time,
+  end_time,
+  total_amount;
 `,
     [
       data.userId,
@@ -152,7 +153,7 @@ RETURNING
       data.totalAmount,
     ]
   );
-  return result.rows[0];
+  return toCamelCase(result.rows[0]);
 }
 
 export async function getPaymentPrice(userId, bookingId) {
@@ -161,7 +162,7 @@ export async function getPaymentPrice(userId, bookingId) {
   SELECT id, total_amount FROM bookings WHERE id = $1 AND user_id = $2 AND status = 'pending_payment'`,
     [bookingId, userId]
   );
-  return result.rows[0];
+  return toCamelCase(result.rows[0]);
 }
 
 export async function insertOrderId(data) {
@@ -192,7 +193,7 @@ export async function getPaymentForVerification(userId, bookingId) {
     [bookingId, userId]
   );
 
-  return result.rows[0] ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
 }
 
 export async function markPaymentPaid(client, paymentId, paymentIdFromGateway) {
@@ -208,7 +209,7 @@ export async function markPaymentPaid(client, paymentId, paymentIdFromGateway) {
     [paymentIdFromGateway, paymentId]
   );
 
-  return result.rows[0];
+  return result.rows[0].id;
 }
 
 export async function confirmBooking(client, bookingId) {
@@ -223,5 +224,5 @@ export async function confirmBooking(client, bookingId) {
     [bookingId]
   );
 
-  return result.rows[0];
+  return toCamelCase(result.rows[0]);
 }

@@ -13,8 +13,8 @@ export async function getVenues() {
 
   return Promise.all(
     data.map(async (venue) => {
-      const { vendor_id, ...publicVenue } = venue;
-      const coverImageId = [`venues/${vendor_id}/${venue.id}/cover_image`];
+      const { vendorId, ...publicVenue } = venue;
+      const coverImageId = [`venues/${vendorId}/${venue.id}/cover_image`];
       return {
         ...publicVenue,
         cover_img_url: (await getFromCloudinary(coverImageId))[0],
@@ -108,7 +108,7 @@ export async function createPaymentOrder(userId, bookingId) {
     }
 
     const order = await razorpay.orders.create({
-      amount: booking.total_amount * 100,
+      amount: booking.totalAmount * 100,
       currency: 'INR',
       receipt: `booking_${bookingId}`,
     });
@@ -116,7 +116,7 @@ export async function createPaymentOrder(userId, bookingId) {
     const paymentId = await repository.insertOrderId({
       bookingId: booking.id,
       orderId: order.id,
-      totalAmount: booking.total_amount,
+      totalAmount: booking.totalAmount,
     });
 
     return {
@@ -146,11 +146,11 @@ export async function verifyPayment(userId, bookingId, data) {
       throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
     }
 
-    if (payment.gateway_order_id !== data.razorpayOrderId) {
+    if (payment.gatewayOrderId !== data.razorpayOrderId) {
       throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
     }
 
-    const body = `${payment.gateway_order_id}|${data.razorpayPaymentId}`;
+    const body = `${payment.gatewayOrderId}|${data.razorpayPaymentId}`;
 
     const expectedSignature = crypto
       .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
