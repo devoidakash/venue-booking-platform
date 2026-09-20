@@ -35,8 +35,8 @@ export async function getVenueApplications(status) {
   return adminAxiosInstance.get(`/admin/venue/applications?status=${status}`);
 }
 
-export async function getVenueApplication(venueId) {
-  return adminAxiosInstance.get(`/admin/venue/applications/${venueId}`);
+export async function getVenueApplication(applicationId) {
+  return adminAxiosInstance.get(`/admin/venue/applications/${applicationId}`);
 }
 
 export async function reviewVenueApplication(applicationId, payload) {
