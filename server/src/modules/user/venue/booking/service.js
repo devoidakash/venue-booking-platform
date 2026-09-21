@@ -5,6 +5,7 @@ import razorpay from '../../../../infrastructure/razorpay/razorpay.js';
 import ApiError from '../../../../utils/api.error.js';
 import { getFromCloudinary } from '../../../../utils/cloudinary.storage.js';
 import { withTransaction } from '../../../../utils/transaction.js';
+import { sendBookingConfirmationEmail } from '../../email.service.js';
 import * as repository from '../booking/repository.js';
 import { ERROR_CONFIG } from './error.config.js';
 
@@ -135,10 +136,10 @@ export async function createPaymentOrder(userId, bookingId) {
   }
 }
 
-export async function verifyPayment(userId, bookingId, data) {
+export async function verifyPayment(user, bookingId, data) {
   try {
     const payment = await repository.getPaymentForVerification(
-      userId,
+      user.id,
       bookingId
     );
 
@@ -175,7 +176,16 @@ export async function verifyPayment(userId, bookingId, data) {
         payment.id,
         data.razorpayPaymentId
       );
-      return await repository.confirmBooking(client, bookingId);
+      const bookingData = await repository.confirmBooking(client, bookingId);
+      const venue = await repository.fetchVenueNameAndAddress(
+        bookingData.venueId
+      );
+      await sendBookingConfirmationEmail({
+        email: user.email,
+        bookingData,
+        venue,
+      });
+      return bookingData;
     });
   } catch (err) {
     if (err instanceof ApiError) {

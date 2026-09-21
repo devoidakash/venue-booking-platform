@@ -252,3 +252,14 @@ export async function fetchBookingsHistory(userId) {
 
   return result.rows.map((row) => toCamelCase(row));
 }
+
+export async function fetchVenueNameAndAddress(venueId) {
+  const result = await pool.query(
+    `
+    SELECT name, address FROM venues WHERE id = $1
+    `,
+    [venueId]
+  );
+
+  return toCamelCase(result.rows[0]);
+}

@@ -56,7 +56,7 @@ export async function createPaymentOrder(req, res) {
 
 export async function verifyPayment(req, res) {
   const data = await service.verifyPayment(
-    req.user.id,
+    req.user,
     req.params.bookingId,
     req.body
   );
