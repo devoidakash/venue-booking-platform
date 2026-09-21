@@ -1,5 +1,7 @@
+import googleClient from '../../../infrastructure/google/google.js';
 import { USER_AUTH_CONFIG } from './config.js';
 import {
+  processGoogleLogin,
   processLogout,
   processOtpRequest,
   processOtpVerification,
@@ -34,6 +36,43 @@ export async function handleOtpVerification(req, res) {
   );
 
   return res.status(200).json({ success: true, message: 'Login successful.' });
+}
+
+export async function handleGoogleRedirect(req, res) {
+  const googleAuthUrl =
+    `https://accounts.google.com/o/oauth2/v2/auth?` +
+    `client_id=${process.env.GOOGLE_CLIENT_ID}` +
+    `&redirect_uri=${encodeURIComponent(process.env.GOOGLE_CALLBACK_URL)}` +
+    `&response_type=code` +
+    `&scope=openid%20email%20profile`;
+
+  res.redirect(googleAuthUrl);
+}
+
+export async function handleGoogleCallback(req, res) {
+  const { code } = req.query;
+  const { tokens } = await googleClient.getToken(code);
+
+  const ticket = await googleClient.verifyIdToken({
+    idToken: tokens.id_token,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  const data = await processGoogleLogin(payload);
+
+  res.cookie(
+    USER_AUTH_CONFIG.ACCESS_COOKIE,
+    data.accessToken,
+    USER_AUTH_CONFIG.ACCESS_COOKIE_OPTIONS
+  );
+
+  res.cookie(
+    USER_AUTH_CONFIG.REFRESH_COOKIE,
+    data.refreshToken,
+    USER_AUTH_CONFIG.REFRESH_COOKIE_OPTIONS
+  );
+
+  return res.redirect(process.env.FRONTEND_URL);
 }
 
 export async function handleSessionRotation(req, res) {

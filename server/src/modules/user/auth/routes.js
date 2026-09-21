@@ -2,6 +2,8 @@ import express from 'express';
 
 import validateSchema from '../../../middleware/schema.validation.js';
 import {
+  handleGoogleCallback,
+  handleGoogleRedirect,
   handleLogout,
   handleMeRequest,
   handleOtpRequest,
@@ -24,6 +26,10 @@ router.post(
   validateSchema(schema.verify),
   handleOtpVerification
 );
+
+router.get('/auth/google', handleGoogleRedirect);
+
+router.get('/auth/google/callback', handleGoogleCallback);
 
 router.get('/auth/me', authenticateToken, ensureAccountActive, handleMeRequest);
 

@@ -42,7 +42,7 @@ export async function processOtpRequest({ email }) {
 export async function processOtpVerification({ email, otp }) {
   await verifyOtpHash(email, otp);
   const authTokens = await withTransaction(pool, async (client) => {
-    const userId = await findOrCreateUser(client, email);
+    const userId = await findOrCreateUser(client, email, 'otp', email);
     const refreshToken = await createRefreshSession(client, userId);
     const accessToken = generateAccessToken(userId);
     return { accessToken, refreshToken };
@@ -59,7 +59,28 @@ async function verifyOtpHash(email, otp) {
   }
 }
 
-async function findOrCreateUser(client, email) {
+export async function processGoogleLogin(data) {
+  return withTransaction(pool, async (client) => {
+    const userId = await findOrCreateUser(
+      client,
+      data.email,
+      'google',
+      data.sub
+    );
+
+    const refreshToken = await createRefreshSession(client, userId);
+    const accessToken = generateAccessToken(userId);
+
+    return { accessToken, refreshToken };
+  });
+}
+
+async function findOrCreateUser(
+  client,
+  email,
+  authProvider,
+  providerIdentifier
+) {
   const existingId = await findUser(client, email);
   if (existingId) return existingId;
 
@@ -67,8 +88,8 @@ async function findOrCreateUser(client, email) {
 
   await createAuthMethod(client, {
     userId,
-    authProvider: 'otp',
-    providerIdentifier: email,
+    authProvider,
+    providerIdentifier,
   });
 
   return userId;

@@ -134,6 +134,11 @@ export default function LoginForm() {
     }
   }
 
+  function handleGoogleLogin() {
+    const googleAuthUrl = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+    window.location.href = googleAuthUrl;
+  }
+
   return (
     <div className="min-h-screen w-full bg-[#FFFBF7] flex items-center justify-center p-4">
       <div className="w-full max-w-4xl bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.06)] border border-orange-100/50 overflow-hidden grid grid-cols-1 md:grid-cols-2">
@@ -279,6 +284,7 @@ export default function LoginForm() {
           <Button
             type="button"
             variant="outline"
+            onClick={handleGoogleLogin}
             className="w-full h-11 border-stone-200 hover:bg-stone-50 rounded-xl text-stone-700 text-xs font-medium gap-2.5"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24">

@@ -178,7 +178,9 @@ function SiteHeader({ location, onLocationChange }) {
                   </>
                 ) : (
                   <>
-                    <DropdownMenuItem>Sign in</DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/login">Sign in</Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <Link to="/bookings">My bookings</Link>
                     </DropdownMenuItem>
