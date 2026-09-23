@@ -1,25 +1,25 @@
 import { deleteAdminSession } from '../session/repository.js';
 import { ADMIN_AUTH_CONFIG } from './config.js';
 import { findAdminById } from './repository.js';
-import { authenticateAdmin } from './service.js';
+import * as service from './service.js';
 
-export async function handleLogin(req, res) {
-  const { sessionId, admin } = await authenticateAdmin(req.body);
+export async function login(req, res) {
+  const data = await service.login(req.body);
 
   res.cookie(
     ADMIN_AUTH_CONFIG.COOKIE_NAME,
-    sessionId,
+    data.sessionId,
     ADMIN_AUTH_CONFIG.ADMIN_COOKIE_OPTIONS
   );
 
   return res.status(200).json({
     status: true,
     message: 'Login successful',
-    data: admin,
+    data: data.admin,
   });
 }
 
-export async function handleLogout(req, res) {
+export async function logout(req, res) {
   const sessionId = req.cookies[ADMIN_AUTH_CONFIG.COOKIE_NAME];
   await deleteAdminSession(sessionId);
 
@@ -34,7 +34,7 @@ export async function handleLogout(req, res) {
   });
 }
 
-export async function handleSession(req, res) {
+export async function getSession(req, res) {
   const data = await findAdminById(req.admin.id);
 
   return res.status(200).json({ success: true, data });

@@ -1,16 +1,16 @@
 import express from 'express';
 
 import validateSchema from '../../../middleware/schema.validation.js';
-import { handleLogin, handleLogout, handleSession } from './controller.js';
+import * as controller from './controller.js';
 import validateAdminSession from './middleware.js';
 import schema from './schema.js';
 
 const router = express.Router();
 
-router.post('/auth/login', validateSchema(schema), handleLogin);
+router.post('/auth/login', validateSchema(schema), controller.login);
 
-router.post('/auth/logout', validateAdminSession, handleLogout);
+router.post('/auth/logout', validateAdminSession, controller.logout);
 
-router.get('/auth/me', validateAdminSession, handleSession);
+router.get('/auth/me', validateAdminSession, controller.getSession);
 
 export default router;
