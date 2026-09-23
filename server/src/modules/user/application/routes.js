@@ -7,7 +7,7 @@ import {
 } from '../../../middleware/file.validation.js';
 import validateSchema from '../../../middleware/schema.validation.js';
 import { authenticateToken, ensureAccountActive } from '../auth/middleware.js';
-import { handleApplicationStatus, submitApplication } from './controller.js';
+import * as controller from './controller.js';
 import { checkExistingApplication } from './middleware.js';
 import schema from './schema.js';
 
@@ -17,19 +17,19 @@ router.get(
   '/application/status',
   authenticateToken,
   ensureAccountActive,
-  handleApplicationStatus
+  controller.getApplicationStatus
 );
 
 router.post(
   '/application',
   authenticateToken,
   ensureAccountActive,
-  upload(1, 8).single('panDocument'),
+  upload(1, 7).single('panDocument'),
   requireFile,
   validateFileType,
   validateSchema(schema),
   checkExistingApplication,
-  submitApplication
+  controller.submitApplication
 );
 
 export default router;

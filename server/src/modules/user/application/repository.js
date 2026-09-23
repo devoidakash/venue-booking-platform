@@ -1,5 +1,8 @@
-export async function findLatestApplicationByUserId(client, userId) {
-  const result = await client.query(
+import { pool } from '../../../infrastructure/database/db.js';
+import toCamelCase from '../../../utils/camelcase.conversion.js';
+
+export async function fetchLatestApplicationStatus(userId) {
+  const result = await pool.query(
     `SELECT status, rejection_reason
       FROM vendor_applications
       WHERE user_id = $1
@@ -7,19 +10,7 @@ export async function findLatestApplicationByUserId(client, userId) {
       DESC LIMIT 1`,
     [userId]
   );
-  return result.rows[0] ?? null;
-}
-
-export async function findLatestApplicationStatusByUserId(client, userId) {
-  const result = await client.query(
-    `SELECT status
-    FROM vendor_applications
-    WHERE user_id = $1
-    ORDER BY submitted_at 
-    DESC LIMIT 1`,
-    [userId]
-  );
-  return result.rows[0]?.status ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
 }
 
 export async function insertVendorApplication(client, data) {
@@ -41,5 +32,5 @@ export async function insertVendorApplication(client, data) {
     ],
   });
 
-  return result.rows[0].id;
+  return result.rows[0];
 }
