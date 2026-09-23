@@ -1,3 +1,5 @@
+import { pool } from '../../../infrastructure/database/db.js';
+
 export async function findUserById(client, userId) {
   const result = await client.query(
     `SELECT id, email, role, status
@@ -8,7 +10,7 @@ export async function findUserById(client, userId) {
   return result.rows[0] ?? null;
 }
 
-export async function findUser(client, email) {
+export async function findUserByEmail(client, email) {
   const result = await client.query(
     `SELECT id 
      FROM users 
@@ -40,21 +42,19 @@ export async function createAuthMethod(client, data) {
 export async function createRefreshToken(client, data) {
   await client.query(
     `INSERT INTO refresh_tokens 
-     (user_id, token_hash, expires_at, revoked_at) 
-     VALUES ($1, $2, $3, $4)`,
-    [data.userId, data.tokenHash, data.expiresAt, data.revokedAt]
+     (user_id, token_hash, expires_at) 
+     VALUES ($1, $2, $3)`,
+    [data.userId, data.tokenHash, data.expiresAt]
   );
 }
 
-export async function markRefreshTokenAsRevoked(client, tokenHash) {
-  const result = await client.query(
+export async function markRefreshTokenAsRevoked(tokenHash) {
+  await pool.query(
     `UPDATE refresh_tokens
     SET revoked_at = NOW()
     WHERE token_hash = $1
     AND revoked_at IS NULL
-    AND expires_at > NOW()
-    RETURNING user_id;`,
+    AND expires_at > NOW()`,
     [tokenHash]
   );
-  return result.rows[0]?.user_id ?? null;
 }

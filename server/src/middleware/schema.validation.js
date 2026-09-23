@@ -7,13 +7,17 @@ export default function validateSchema(schema, source = 'body') {
     const result = schema.safeParse(data);
 
     if (!result.success) {
-      const firstError = result.error.issues[0]?.message;
-
-      throw new ApiError({
-        statusCode: 400,
-        message: firstError || 'Invalid request data',
-        code: 'VALIDATION_ERROR',
-      });
+      throw new ApiError(
+        {
+          statusCode: 400,
+          message: result.error.issues[0]?.message || 'Invalid request data',
+          code: 'VALIDATION_ERROR',
+        },
+        result.error.issues.map((i) => ({
+          field: i.path.join('.'),
+          message: i.message,
+        }))
+      );
     }
 
     if (source === 'query') {

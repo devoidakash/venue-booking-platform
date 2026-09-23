@@ -1,6 +1,6 @@
 const isProd = process.env.NODE_ENV === 'production';
 
-export const USER_AUTH_CONFIG = {
+export const AUTH_CONFIG = {
   OTP_PREFIX: 'user:otp:',
   OTP_RATE_LIMIT_PREFIX: 'user:otp:rate:',
   OTP_COOLDOWN_PREFIX: 'user:otp:cooldown:',

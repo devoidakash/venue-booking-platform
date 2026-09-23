@@ -1,45 +1,37 @@
 import express from 'express';
 
 import validateSchema from '../../../middleware/schema.validation.js';
-import {
-  handleGoogleCallback,
-  handleGoogleRedirect,
-  handleLogout,
-  handleMeRequest,
-  handleOtpRequest,
-  handleOtpVerification,
-  handleSessionRotation,
-} from './controller.js';
+import * as controller from './controller.js';
 import { authenticateToken, ensureAccountActive } from './middleware.js';
-import schema from './schema.js';
+import * as schema from './schema.js';
 
 const router = express.Router();
 
 router.post(
   '/auth/otp/request',
   validateSchema(schema.email),
-  handleOtpRequest
+  controller.requestOtp
 );
 
 router.post(
   '/auth/otp/verify',
-  validateSchema(schema.verify),
-  handleOtpVerification
+  validateSchema(schema.credentials),
+  controller.verifyOtp
 );
 
-router.get('/auth/google', handleGoogleRedirect);
+router.get('/auth/google', controller.redirectToGoogleAuth);
 
-router.get('/auth/google/callback', handleGoogleCallback);
+router.get('/auth/google/callback', controller.loginWithGoogle);
 
-router.get('/auth/me', authenticateToken, ensureAccountActive, handleMeRequest);
+router.get('/auth/me', authenticateToken, ensureAccountActive, controller.me);
 
-router.post('/auth/refresh', handleSessionRotation);
+router.post('/auth/refresh', controller.rotateSession);
 
 router.post(
   '/auth/logout',
   authenticateToken,
   ensureAccountActive,
-  handleLogout
+  controller.logout
 );
 
 export default router;

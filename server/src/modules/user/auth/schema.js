@@ -1,17 +1,21 @@
 import { z } from 'zod';
 
-const schema = {
-  email: z.object({
-    email: z.string().trim().toLowerCase().min(1).email(),
-  }),
+const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(1, 'Email is required')
+  .email('Please enter a valid email address');
 
-  verify: z.object({
-    email: z.string().trim().toLowerCase().min(1).email(),
-    otp: z
-      .string()
-      .length(6, 'OTP must be exactly 6 digits')
-      .regex(/^[0-9]+$/, 'OTP must only contain numbers'),
-  }),
-};
+export const email = z.object({
+  email: emailSchema,
+});
 
-export default schema;
+export const credentials = z.object({
+  email: emailSchema,
+
+  otp: z
+    .string()
+    .length(6, 'OTP must be exactly 6 digits')
+    .regex(/^[0-9]+$/, 'OTP must contain only numbers'),
+});
