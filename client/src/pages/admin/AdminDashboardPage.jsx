@@ -18,7 +18,7 @@ const adminNavigationLinks = [
     icon: Home,
   },
   {
-    to: "/admin",
+    to: "/admin/vendor/applications?status=pending",
     label: "Vendor Request ",
     icon: UserPlus,
     children: [
@@ -40,7 +40,7 @@ const adminNavigationLinks = [
     ],
   },
   {
-    to: "/admin",
+    to: "/admin/venue/applications?status=pending",
     label: "Venue Request",
     icon: Building2,
     children: [

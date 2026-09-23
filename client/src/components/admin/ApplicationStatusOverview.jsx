@@ -100,6 +100,7 @@ export default function ApplicationStatusOverview({
         </div>
         {!loading && !error && counts.pending > 0 && (
           <button
+            type="button"
             onClick={() => navigate(`${baseRoute}?status=pending`)}
             className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
           >
@@ -129,6 +130,7 @@ export default function ApplicationStatusOverview({
           ({ status, label, icon: Icon, accent, iconBg, emphasize }) => (
             <button
               key={status}
+              type="button"
               onClick={() => navigate(`${baseRoute}?status=${status}`)}
               className={`group flex flex-col rounded-lg border bg-white p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
                 emphasize ? "border-amber-200" : "border-slate-200"
