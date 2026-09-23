@@ -52,7 +52,8 @@ export async function getVenuePricing(venueId) {
 }
 
 export async function createBooking(userId, venueId, data) {
-  const day = new Date(data.bookingDate).getDay();
+  const [year, month, dayNum] = data.bookingDate.split('-').map(Number);
+  const day = new Date(year, month - 1, dayNum).getDay();
   const dayType = day == 0 || day == 6 ? 'weekend' : 'weekday';
 
   try {
@@ -63,6 +64,17 @@ export async function createBooking(userId, venueId, data) {
     }
 
     if (data.bookingType === 'whole_day') {
+      const existingBooking = await repository.getExistingBooking({
+        userId,
+        venueId,
+        ...data,
+        startTime: null,
+        endTime: null,
+        totalAmount: price * data.quantity,
+      });
+
+      if (existingBooking) return existingBooking;
+
       return await repository.insertWholeDayBooking({
         userId,
         venueId,
@@ -72,6 +84,15 @@ export async function createBooking(userId, venueId, data) {
     }
 
     if (data.bookingType === 'time_slot') {
+      const existingBooking = await repository.getExistingBooking({
+        userId,
+        venueId,
+        ...data,
+        totalAmount: price * data.quantity,
+      });
+
+      if (existingBooking) return existingBooking;
+
       const timing = await repository.getVenueTiming(venueId);
 
       if (!timing) {

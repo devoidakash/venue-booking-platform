@@ -68,10 +68,34 @@ export async function getVenuePricing(venueId) {
 export async function getBookingPrice(data) {
   const result = await pool.query(
     `
-  SELECT * FROM venue_pricing WHERE venue_id = $1 AND day_type = $2`,
+  SELECT price FROM venue_pricing WHERE venue_id = $1 AND day_type = $2`,
     [data.venueId, data.dayType]
   );
   return result.rows[0]?.price ?? null;
+}
+
+export async function getExistingBooking(data) {
+  const result = await pool.query(
+    `
+  SELECT id, user_id, venue_id, booking_date, booking_type, quantity,
+  total_amount FROM bookings
+  WHERE user_id = $1 AND venue_id = $2 AND booking_date = $3
+  AND booking_type = $4 AND quantity = $5
+  AND start_time IS NOT DISTINCT FROM $6
+  AND end_time IS NOT DISTINCT FROM $7
+  AND total_amount = $8 AND end_time = $7 AND total_amount = $8 `,
+    [
+      data.userId,
+      data.venueId,
+      data.bookingDate,
+      data.bookingType,
+      data.quantity,
+      data.startTime,
+      data.endTime,
+      data.totalAmount,
+    ]
+  );
+  return toCamelCase(result.rows[0]) ?? null;
 }
 
 export async function insertWholeDayBooking(data) {
@@ -262,4 +286,13 @@ export async function fetchVenueNameAndAddress(venueId) {
   );
 
   return toCamelCase(result.rows[0]);
+}
+
+export async function expireStaleBookings() {
+  await pool.query(`
+    UPDATE bookings
+    SET status = 'expired'
+    WHERE status = 'pending_payment'
+      AND created_at < NOW() - INTERVAL '15 minutes'
+  `);
 }
