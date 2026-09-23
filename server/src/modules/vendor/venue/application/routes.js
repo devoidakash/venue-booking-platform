@@ -2,7 +2,7 @@ import express from 'express';
 
 import upload from '../../../../middleware/file.upload.js';
 import validateSchema from '../../../../middleware/schema.validation.js';
-import { submitApplication } from './controller.js';
+import * as controller from './controller.js';
 import validateFileCount from './middleware.js';
 import schema from './schema.js';
 
@@ -17,7 +17,7 @@ router.post(
   ]),
   validateSchema(schema),
   validateFileCount,
-  submitApplication
+  controller.submitApplication
 );
 
 export default router;

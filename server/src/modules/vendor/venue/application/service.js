@@ -8,14 +8,16 @@ import { withTransaction } from '../../../../utils/transaction.js';
 import ERROR_CONFIG from './error.config.js';
 import { findVenueGroupId, insertIntoVenueApplications } from './repository.js';
 
-export async function processSubmission(vendorId, data, files) {
+export async function submitApplication(vendorId, data, files) {
   const proofDocument = files.proofDocument[0];
   const coverImage = files.coverImage[0];
+
   const proofDocumentKey = `venue-application/${vendorId}/${Date.now()}-venueProof${path.extname(proofDocument.originalname)}`;
   const coverImageKey = `venue-application/${vendorId}/${Date.now()}-venueCoverImage${path.extname(coverImage.originalname)}`;
-  const venueImagesKey = files.venueImages.map((image, index) => {
+  const venueImagesKeys = files.venueImages.map((image, index) => {
     return `venue-application/${vendorId}/${Date.now()}-${index}-venueImages${path.extname(image.originalname)}`;
   });
+
   const uploadedKeys = [];
 
   try {
@@ -30,8 +32,7 @@ export async function processSubmission(vendorId, data, files) {
     uploadedKeys.push(coverImageKey);
 
     for (const [index, image] of files.venueImages.entries()) {
-      await uploadToR2(image.buffer, venueImagesKey[index], image.mimetype);
-
+      await uploadToR2(image.buffer, venueImagesKeys[index], image.mimetype);
       uploadedKeys.push(venueImagesKey[index]);
     }
 
@@ -43,7 +44,8 @@ export async function processSubmission(vendorId, data, files) {
       if (!result) {
         throw new ApiError(ERROR_CONFIG.NO_EXISTING_VENUE_FOUND);
       }
-      venueGroupId = result;
+
+      venueGroupId = result.venueGroupId;
     } else {
       venueGroupId = randomUUID();
     }
