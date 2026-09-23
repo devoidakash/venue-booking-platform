@@ -40,4 +40,14 @@ export const ERROR_CONFIG = {
     message: 'Payment was not captured',
     code: 'PAYMENT_NOT_CAPTURED',
   },
+  MISSING_RAZORPAY_SIGNATURE: {
+    statusCode: 400,
+    message: 'Missing Razorpay signature',
+    code: 'MISSING_RAZORPAY_SIGNATURE',
+  },
+  INVALID_RAZORPAY_SIGNATURE: {
+    statusCode: 400,
+    message: 'Invalid Razorpay signature',
+    code: 'INVALID_RAZORPAY_SIGNATURE',
+  },
 };

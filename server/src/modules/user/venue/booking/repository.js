@@ -189,6 +189,18 @@ export async function getPaymentPrice(userId, bookingId) {
   return toCamelCase(result.rows[0]);
 }
 
+export async function fetchExistingOrderId(bookingId) {
+  const result = await pool.query(
+    `
+    SELECT id, gateway_order_id, total_amount
+    FROM payments
+    WHERE booking_id = $1
+    `,
+    [bookingId]
+  );
+  return toCamelCase(result.rows[0]) ?? null;
+}
+
 export async function insertOrderId(data) {
   const result = await pool.query(
     `
@@ -211,13 +223,24 @@ export async function getPaymentForVerification(userId, bookingId) {
     JOIN bookings b ON b.id = p.booking_id
     WHERE p.booking_id = $1
       AND b.user_id = $2
-      AND b.status = 'pending_payment'
       AND p.status = 'pending'
     `,
     [bookingId, userId]
   );
 
   return toCamelCase(result.rows[0]) ?? null;
+}
+
+export async function markPaymentFailed(paymentId) {
+  await client.query(
+    `
+    UPDATE payments
+    SET
+    status = 'failed'
+    WHERE id = $1
+    `,
+    [paymentId]
+  );
 }
 
 export async function markPaymentPaid(client, paymentId, paymentIdFromGateway) {
@@ -242,7 +265,6 @@ export async function confirmBooking(client, bookingId) {
     UPDATE bookings
     SET status = 'confirmed'
     WHERE id = $1
-      AND status = 'pending_payment'
     RETURNING *
     `,
     [bookingId]

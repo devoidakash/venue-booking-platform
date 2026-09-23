@@ -129,6 +129,18 @@ export async function createPaymentOrder(userId, bookingId) {
       throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
     }
 
+    const existingOrder = await repository.fetchExistingOrderId(booking.id);
+
+    if (existingOrder) {
+      return {
+        paymentId: existingOrder.id,
+        orderId: existingOrder.gatewayOrderId,
+        amount: existingOrder.totalAmount * 100,
+        currency: 'INR',
+        keyId: process.env.RAZORPAY_KEY_ID,
+      };
+    }
+
     const order = await razorpay.orders.create({
       amount: booking.totalAmount * 100,
       currency: 'INR',
@@ -188,6 +200,7 @@ export async function verifyPayment(user, bookingId, data) {
     );
 
     if (verifiedPayment.status !== 'captured') {
+      await repository.markPaymentFailed(payment.id);
       throw new ApiError(ERROR_CONFIG.PAYMENT_NOT_CAPTURED);
     }
 
