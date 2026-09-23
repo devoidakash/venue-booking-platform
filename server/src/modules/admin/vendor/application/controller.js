@@ -10,15 +10,18 @@ export async function getApplications(req, res) {
   res.status(200).json({ status: true, data });
 }
 
-export async function updateApplication(req, res) {
-  await service.updateApplication(
+export async function reviewApplication(req, res) {
+  await service.reviewApplication(
     req.admin.id,
     req.params.applicationId,
     req.body
   );
   res
     .status(201)
-    .json({ status: true, message: 'Vendor application status updated' });
+    .json({
+      status: true,
+      message: 'Vendor application reviewed successfully',
+    });
 }
 
 export async function getVendorProfile(req, res) {

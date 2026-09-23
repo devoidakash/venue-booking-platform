@@ -18,7 +18,7 @@ router.patch(
   '/vendor/applications/:applicationId',
   validateSchema(schema.applicationId, 'params'),
   validateSchema(schema.review, 'body'),
-  controller.updateApplication
+  controller.reviewApplication
 );
 
 router.get(

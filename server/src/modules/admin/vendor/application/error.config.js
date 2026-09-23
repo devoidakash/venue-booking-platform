@@ -4,10 +4,10 @@ export const APPLICATION_ERROR_CONFIG = {
     message: 'Vendor not found',
     code: 'VENDOR_NOT_FOUND',
   },
-  APPLICATION_NOT_PENDING: {
+  NO_PENDING_APPLICATIONS: {
     statusCode: 409,
     message: 'No pending application found',
-    code: 'APPLICATION_NOT_PENDING',
+    code: 'NO_PENDING_APPLICATIONS',
   },
   INVALID_STATUS: {
     statusCode: 400,

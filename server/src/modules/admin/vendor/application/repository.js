@@ -1,4 +1,5 @@
 import { pool } from '../../../../infrastructure/database/db.js';
+import toCamelCase from '../../../../utils/camelcase.conversion.js';
 
 export async function fetchApplicationsCounts() {
   const result = await pool.query(
@@ -18,7 +19,7 @@ export async function fetchApplicationsCounts() {
   };
 }
 
-export async function findApplicationsByStatus(client, status) {
+export async function fetchApplicationsByStatus(client, status) {
   const result = await client.query(
     `SELECT 
         id,
@@ -39,16 +40,16 @@ export async function findApplicationsByStatus(client, status) {
       ORDER BY submitted_at DESC`,
     [status]
   );
-  return result.rows;
+  return result.rows.map((row) => toCamelCase(row));
 }
 
 export async function markVendorAsApproved(client, data) {
   const result = await client.query(
     `UPDATE vendor_applications
-     SET status = $1,
+     SET status = 'approved',
          reviewed_at = NOW(),
-         reviewed_by = $2
-     WHERE id = $3
+         reviewed_by = $1
+     WHERE id = $2
        AND status = 'pending'
      RETURNING
        user_id,
@@ -56,17 +57,17 @@ export async function markVendorAsApproved(client, data) {
        phone,
        district,
        state`,
-    [data.status, data.reviewedBy, data.applicationId]
+    [data.reviewedBy, data.applicationId]
   );
 
-  return result.rows[0] ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
 }
 
 export async function createVendorProfile(client, data) {
   await client.query(
     `INSERT INTO vendor_profiles(user_id, vendor_name, phone, district, state)
       VALUES ($1, $2, $3, $4, $5)`,
-    [data.user_id, data.pan_name, data.phone, data.district, data.state]
+    [data.userId, data.panName, data.phone, data.district, data.state]
   );
 }
 
@@ -104,10 +105,10 @@ export async function markVendorAsRejected(client, data) {
     [data.rejectionReason, data.reviewerId, data.applicationId]
   );
 
-  return result.rows[0] ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
 }
 
-export async function findVendorById(client, vendorId) {
+export async function fetchVenodrProfile(client, vendorId) {
   const result = await client.query(
     `SELECT
        vp.id,
@@ -127,5 +128,5 @@ export async function findVendorById(client, vendorId) {
     [vendorId]
   );
 
-  return result.rows[0] ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
 }

@@ -14,30 +14,30 @@ export async function getApplicationsCounts() {
 }
 
 export async function getApplications(status) {
-  const applications = await repository.findApplicationsByStatus(pool, status);
+  const applications = await repository.fetchApplicationsByStatus(pool, status);
 
   return Promise.all(
     applications.map(async (item) => {
       return {
         id: item.id,
-        panName: item.pan_name,
+        panName: item.panName,
         phone: item.phone,
         address: item.address,
         district: item.district,
         state: item.state,
         pincode: item.pincode,
-        panNumber: item.pan_number,
-        panDocumentUrl: (await getPrivateUrl([item.pan_document_key]))[0],
+        panNumber: item.panNumber,
+        panDocumentUrl: (await getPrivateUrl([item.panDocumentKey]))[0],
         status: item.status,
-        submittedAt: item.submitted_at,
-        reviewedAt: item.reviewed_at,
-        rejectionReason: item.rejection_reason,
+        submittedAt: item.submittedAt,
+        reviewedAt: item.reviewedAt,
+        rejectionReason: item.rejectionReason,
       };
     })
   );
 }
 
-export async function updateApplication(reviewerId, applicationId, data) {
+export async function reviewApplication(reviewerId, applicationId, data) {
   if (data.status === 'approved') {
     return handleApproved(reviewerId, applicationId);
   }
@@ -49,20 +49,16 @@ async function handleApproved(reviewerId, applicationId) {
   const emailInfo = await withTransaction(pool, async (client) => {
     const application = await repository.markVendorAsApproved(client, {
       applicationId,
-      status: 'approved',
       reviewedBy: reviewerId,
     });
 
     if (!application) {
-      throw new ApiError(APPLICATION_ERROR_CONFIG.APPLICATION_NOT_PENDING);
+      throw new ApiError(APPLICATION_ERROR_CONFIG.NO_PENDING_APPLICATIONS);
     }
 
     await repository.createVendorProfile(client, application);
-    const email = await repository.markUserAsVendor(
-      client,
-      application.user_id
-    );
-    return { email, vendorName: application.pan_name };
+    const email = await repository.markUserAsVendor(client, application.userId);
+    return { email, vendorName: application.panName };
   });
   try {
     await sendVendorApprovalMail(emailInfo);
@@ -80,14 +76,14 @@ async function handleRejected(reviewerId, applicationId, rejectionReason) {
   });
 
   if (!application) {
-    throw new ApiError(APPLICATION_ERROR_CONFIG.APPLICATION_NOT_PENDING);
+    throw new ApiError(APPLICATION_ERROR_CONFIG.NO_PENDING_APPLICATIONS);
   }
 
   try {
     await sendVendorRejectionMail({
       email: application.email,
-      vendorName: application.pan_name,
-      rejectionReason: application.rejection_reason,
+      vendorName: application.panName,
+      rejectionReason: application.rejectionReason,
     });
   } catch (error) {
     throw new ApiError(APPLICATION_ERROR_CONFIG.EMAIL_SEND_FAILED);
@@ -97,22 +93,10 @@ async function handleRejected(reviewerId, applicationId, rejectionReason) {
 }
 
 export async function getVendorProfile(vendorId) {
-  const vendor = await repository.findVendorById(pool, vendorId);
+  const vendor = await repository.fetchVenodrProfile(pool, vendorId);
 
   if (!vendor) {
     throw new ApiError(APPLICATION_ERROR_CONFIG.VENDOR_NOT_FOUND);
   }
-
-  return {
-    id: vendor.id,
-    vendorName: vendor.vendor_name,
-    email: vendor.email,
-    phone: vendor.phone,
-    district: vendor.district,
-    state: vendor.state,
-    isSuspended: vendor.is_suspended,
-    suspensionReason: vendor.suspension_reason,
-    accountStatus: vendor.account_status,
-    approvedAt: vendor.approved_at,
-  };
+  return vendor;
 }
