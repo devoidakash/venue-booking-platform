@@ -293,6 +293,6 @@ export async function expireStaleBookings() {
     UPDATE bookings
     SET status = 'expired'
     WHERE status = 'pending_payment'
-      AND created_at < NOW() - INTERVAL '15 minutes'
+    AND created_at < NOW() - INTERVAL '15 minutes'
   `);
 }
