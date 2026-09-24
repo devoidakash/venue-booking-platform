@@ -2,7 +2,7 @@ import { pool } from '../../../../../infrastructure/database/db.js';
 import { withTransaction } from '../../../../../utils/transaction.js';
 import { sendBookingConfirmationEmail } from '../../../email.service.js';
 import {
-  confirmBooking,
+  confirmBookingIgnoringExpiry,
   fetchVenueNameAndAddress,
   markPaymentPaid,
 } from '../repository.js';
@@ -24,7 +24,7 @@ export async function handlePaymentCaptured(paymentEntity) {
 
   const bookingData = await withTransaction(pool, async (client) => {
     await markPaymentPaid(client, payment.id, paymentEntity.id);
-    return await confirmBooking(client, payment.bookingId);
+    return await confirmBookingIgnoringExpiry(client, payment.bookingId);
   });
 
   const venue = await fetchVenueNameAndAddress(bookingData.venueId);

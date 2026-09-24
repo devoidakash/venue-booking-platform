@@ -318,3 +318,17 @@ export async function expireStaleBookings() {
     AND created_at < NOW() - INTERVAL '15 minutes'
   `);
 }
+
+export async function confirmBookingIgnoringExpiry(client, bookingId) {
+  const result = await client.query(
+    `
+    UPDATE bookings
+    SET status = 'confirmed'
+    WHERE id = $1
+      AND status IN ('pending_payment', 'expired')
+    RETURNING *
+    `,
+    [bookingId]
+  );
+  return toCamelCase(result.rows[0]);
+}
