@@ -15,7 +15,7 @@ export default async function validateAdminSession(req, res, next) {
   if (!data) {
     res.clearCookie(
       ADMIN_AUTH_CONFIG.COOKIE_NAME,
-      ADMIN_AUTH_CONFIG.CLEAR_COOKIE_OPTIONS
+      ADMIN_AUTH_CONFIG.ADMIN_CLEAR_COOKIE_OPTIONS
     );
     throw new ApiError(ERROR_CONFIG.SESSION_EXPIRED);
   }

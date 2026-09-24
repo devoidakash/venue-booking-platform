@@ -1,3 +1,4 @@
+import { ERROR_CONFIG } from '../../../config/error.config.js';
 import { deleteAdminSession } from '../session/repository.js';
 import { ADMIN_AUTH_CONFIG } from './config.js';
 import { findAdminById } from './repository.js';
@@ -21,6 +22,7 @@ export async function login(req, res) {
 
 export async function logout(req, res) {
   const sessionId = req.cookies[ADMIN_AUTH_CONFIG.COOKIE_NAME];
+
   await deleteAdminSession(sessionId);
 
   res.clearCookie(
@@ -36,6 +38,8 @@ export async function logout(req, res) {
 
 export async function getSession(req, res) {
   const data = await findAdminById(req.admin.id);
-
+  if (!data) {
+    throw new ApiError(ERROR_CONFIG.ADMIN_NOT_FOUND);
+  }
   return res.status(200).json({ success: true, data });
 }

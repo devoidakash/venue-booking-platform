@@ -60,4 +60,9 @@ export const ERROR_CONFIG = {
     message: 'Invalid file type. Only JPEG, JPG and PNG are allowed.',
     code: 'FILE_TYPE_MISMATCH',
   },
+  ADMIN_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Admin not found',
+    code: 'ADMIN_NOT_FOUND',
+  },
 };
