@@ -225,7 +225,7 @@ export async function getPaymentForVerification(userId, bookingId) {
     JOIN bookings b ON b.id = p.booking_id
     WHERE p.booking_id = $1
       AND b.user_id = $2
-      AND p.status = 'pending'
+      AND p.status IN ('pending', 'paid')
     `,
     [bookingId, userId]
   );
