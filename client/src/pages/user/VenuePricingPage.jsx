@@ -204,10 +204,30 @@ function SlotPanel({
     );
   }
 
-  const slots = Array.from({ length: closeHour - openHour }, (_, i) => ({
-    start: openHour + i,
-    end: openHour + i + 1,
-  }));
+  const today = new Date();
+  const isToday = isSameDay(date, today);
+  const nowHour = isToday ? today.getHours() : null;
+  const nowMinute = isToday ? today.getMinutes() : 0;
+  const minuteThreshold = nowMinute > 0 ? 1 : 0;
+  const earliestStartHour = isToday
+    ? Math.max(openHour, nowHour + minuteThreshold)
+    : openHour;
+
+  const slots = Array.from(
+    { length: closeHour - earliestStartHour },
+    (_, i) => ({
+      start: earliestStartHour + i,
+      end: earliestStartHour + i + 1,
+    }),
+  ).filter((slot) => slot.end <= closeHour);
+
+  if (slots.length === 0) {
+    return (
+      <div className="grid h-full min-h-220px place-items-center px-6 text-center text-sm text-neutral-400 lg:min-h-0">
+        No time slots available for this venue.
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 gap-3 p-1">

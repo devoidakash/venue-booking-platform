@@ -52,6 +52,11 @@ export async function getVenuePricing(venueId) {
   return { bookingType, pricing };
 }
 
+const toMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
 export async function createBooking(userId, venueId, data) {
   const day = data.bookingDate.getUTCDay();
   const dayType = day == 0 || day == 6 ? 'weekend' : 'weekday';
@@ -104,6 +109,20 @@ export async function createBooking(userId, venueId, data) {
         data.endTime > timing.closingTime
       ) {
         throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_TIME_INVALID);
+      }
+
+      const now = new Date();
+      const isToday =
+        data.bookingDate.getFullYear() === now.getFullYear() &&
+        data.bookingDate.getMonth() === now.getMonth() &&
+        data.bookingDate.getDate() === now.getDate();
+
+      if (isToday) {
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        if (toMinutes(data.startTime) < currentMinutes) {
+          throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_TIME_INVALID);
+        }
       }
 
       return await repository.insertTimeSlotBooking({

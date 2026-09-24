@@ -10,6 +10,20 @@ const timeSchema = z
   .string()
   .regex(/^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/, 'Invalid time format');
 
+const toMinutes = (time) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const isToday = (date) => {
+  const now = new Date();
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  );
+};
+
 export const createBooking = z.discriminatedUnion('bookingType', [
   z.object({
     bookingDate: z.coerce.date(),
@@ -27,11 +41,6 @@ export const createBooking = z.discriminatedUnion('bookingType', [
     })
     .refine(
       ({ startTime, endTime }) => {
-        const toMinutes = (time) => {
-          const [hours, minutes] = time.split(':').map(Number);
-          return hours * 60 + minutes;
-        };
-
         const start = toMinutes(startTime);
         const end = toMinutes(endTime);
 
@@ -40,6 +49,18 @@ export const createBooking = z.discriminatedUnion('bookingType', [
       {
         message: 'Time slot must be exactly 60 minutes',
         path: ['endTime'],
+      }
+    )
+    .refine(
+      ({ bookingDate, startTime }) => {
+        if (!isToday(bookingDate)) return true;
+
+        const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+        return toMinutes(startTime) >= nowMinutes;
+      },
+      {
+        message: 'Selected time slot has already passed for today',
+        path: ['startTime'],
       }
     ),
 ]);
