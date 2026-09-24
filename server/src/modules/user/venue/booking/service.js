@@ -42,6 +42,7 @@ export async function getVenuePricing(venueId) {
   if (!bookingType) {
     throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);
   }
+
   const pricing = await repository.getVenuePricing(venueId);
 
   if (!pricing.length) {

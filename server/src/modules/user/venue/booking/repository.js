@@ -59,7 +59,9 @@ export async function getVenueBookingType(venueId) {
 export async function getVenuePricing(venueId) {
   const result = await pool.query(
     `
-  SELECT venue_id, day_type, duration_minutes, price FROM venue_pricing WHERE venue_id = $1`,
+  SELECT v.id, v.opening_time, v.closing_time, vp.day_type, vp.duration_minutes, vp.price FROM venues v
+  JOIN venue_pricing vp ON vp.venue_id = v.id
+  WHERE v.id = $1 AND v.status = 'live'`,
     [venueId]
   );
   return result.rows.map((row) => toCamelCase(row));
@@ -95,7 +97,7 @@ export async function getExistingBooking(data) {
       data.totalAmount,
     ]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return result.rows[0] ? toCamelCase(result.rows[0]) : null;
 }
 
 export async function insertWholeDayBooking(data) {
@@ -138,7 +140,7 @@ export async function getVenueTiming(venueId) {
     FROM venues WHERE id = $1`,
     [venueId]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return result.rows[0] ? toCamelCase(result.rows[0]) : null;
 }
 
 export async function insertTimeSlotBooking(data) {
@@ -192,13 +194,13 @@ export async function getPaymentPrice(userId, bookingId) {
 export async function fetchExistingOrderId(bookingId) {
   const result = await pool.query(
     `
-    SELECT id, gateway_order_id, total_amount
+    SELECT id, gateway_order_id, amount
     FROM payments
     WHERE booking_id = $1
     `,
     [bookingId]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return result.rows[0] ? toCamelCase(result.rows[0]) : null;
 }
 
 export async function insertOrderId(data) {

@@ -58,29 +58,29 @@ const parseHour = (t) => (t ? Number(t.split(":")[0]) : null);
 
 function usePricingLookup(pricing = []) {
   return useMemo(() => {
-    const dayEntries = pricing.filter((p) => p.duration_minutes == null);
-    const slotEntries = pricing.filter((p) => p.duration_minutes === 60);
+    const dayEntries = pricing.filter((p) => p.durationMinutes == null);
+    const slotEntries = pricing.filter((p) => p.durationMinutes === 60);
     const mode = slotEntries.length > 0 ? "slot" : "whole_day";
 
     const dayPrice = (date) => {
       const type = isWeekendDay(date) ? "weekend" : "weekday";
-      const match =
-        dayEntries.find((p) => p.day_type === type) ?? dayEntries[0];
+      const match = dayEntries.find((p) => p.dayType === type) ?? dayEntries[0];
       return match?.price ?? null;
     };
 
-    const slotPrice = (date) => {
+    const slotEntry = (date) => {
       const type = isWeekendDay(date) ? "weekend" : "weekday";
       const match =
-        slotEntries.find((p) => p.day_type === type) ??
-        slotEntries.find((p) => p.day_type === "time_slot") ??
+        slotEntries.find((p) => p.dayType === type) ??
+        slotEntries.find((p) => p.dayType === "time_slot") ??
         slotEntries[0];
-      return match?.price ?? null;
+      return match ?? null;
     };
 
-    const priceForDate = mode === "slot" ? slotPrice : dayPrice;
+    const priceForDate = (date) =>
+      mode === "slot" ? (slotEntry(date)?.price ?? null) : dayPrice(date);
 
-    return { mode, priceForDate };
+    return { mode, priceForDate, slotEntry };
   }, [pricing]);
 }
 
@@ -233,7 +233,6 @@ function SlotPanel({
 }
 
 export default function VenuePricingPage({
-  venue,
   pricingData,
   trigger,
   open: openProp,
@@ -246,7 +245,9 @@ export default function VenuePricingPage({
   const open = isControlled ? openProp : internalOpen;
   const setOpen = isControlled ? onOpenChange : setInternalOpen;
 
-  const { mode, priceForDate } = usePricingLookup(pricingData?.pricing);
+  const { mode, priceForDate, slotEntry } = usePricingLookup(
+    pricingData?.pricing,
+  );
 
   const today = useMemo(() => {
     const t = new Date();
@@ -281,6 +282,8 @@ export default function VenuePricingPage({
   const canProceed =
     mode === "slot" ? !!(selectedDate && selectedSlot) : !!selectedDate;
 
+  const selectedSlotPricing = selectedDate ? slotEntry(selectedDate) : null;
+
   const finalPrice =
     mode === "slot"
       ? selectedSlotPrice
@@ -307,7 +310,7 @@ export default function VenuePricingPage({
       <DialogContent
         showCloseButton={false}
         className={`gap-0 rounded-2xl p-0 ${
-          mode === "slot" ? "sm:max-w-3xl" : "sm:max-w-sm"
+          mode === "slot" ? "sm:max-w-4xl" : "sm:max-w-sm"
         }`}
       >
         <div className="flex items-center justify-between border-b border-neutral-100 px-6 py-5">
@@ -322,11 +325,11 @@ export default function VenuePricingPage({
         <div
           className={`grid gap-6 px-6 py-6 ${
             mode === "slot"
-              ? "sm:grid-cols-[auto_1fr] sm:divide-x sm:divide-neutral-100"
+              ? "sm:grid-cols-[minmax(320px,1fr)_minmax(0,1.25fr)] sm:divide-x sm:divide-neutral-100"
               : ""
           }`}
         >
-          <div className={mode === "slot" ? "sm:pr-6" : ""}>
+          <div className={mode === "slot" ? "min-w-0 sm:pr-6" : ""}>
             <Calendar
               month={month}
               onMonthChange={setMonth}
@@ -343,8 +346,8 @@ export default function VenuePricingPage({
           {mode === "slot" && (
             <div className="sm:pl-6">
               <SlotPanel
-                openingTime={venue?.openingTime}
-                closingTime={venue?.closingTime}
+                openingTime={selectedSlotPricing?.openingTime}
+                closingTime={selectedSlotPricing?.closingTime}
                 date={selectedDate}
                 price={selectedDate ? priceForDate(selectedDate) : null}
                 selectedSlot={selectedSlot}
