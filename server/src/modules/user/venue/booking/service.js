@@ -211,13 +211,9 @@ export async function verifyPayment(user, bookingId, data) {
         data.razorpayPaymentId
       );
       const bookingData = await repository.confirmBooking(client, bookingId);
-      const venue = await repository.fetchVenueNameAndAddress(
-        bookingData.venueId
-      );
       await sendBookingConfirmationEmail({
         email: user.email,
         bookingData,
-        venue,
       });
       return bookingData;
     });

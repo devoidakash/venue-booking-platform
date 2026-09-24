@@ -2,7 +2,7 @@ import { pool } from '../../../../../infrastructure/database/db.js';
 import toCamelCase from '../../../../../utils/camelcase.conversion.js';
 import { withTransaction } from '../../../../../utils/transaction.js';
 
-export async function getPaymentByGatewayOrderId(orderId) {
+export async function fetchPaymentByGatewayOrderId(orderId) {
   const result = await pool.query(
     `SELECT id, booking_id, status FROM payments WHERE gateway_order_id = $1`,
     [orderId]
@@ -10,7 +10,7 @@ export async function getPaymentByGatewayOrderId(orderId) {
   return toCamelCase(result.rows[0]) ?? null;
 }
 
-export async function markPaymentFailedAndBooking(paymentId, bookingId) {
+export async function markBookingAndPaymentFailed(paymentId, bookingId) {
   await withTransaction(pool, async (client) => {
     await client.query(`UPDATE payments SET status = 'failed' WHERE id = $1`, [
       paymentId,

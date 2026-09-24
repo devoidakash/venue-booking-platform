@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 
-export async function handleRazorpayWebhook(req, res) {
+import * as service from './service.js';
+
+export async function razorpayWebhook(req, res) {
   try {
     const signature = req.headers['x-razorpay-signature'];
 
@@ -23,21 +25,14 @@ export async function handleRazorpayWebhook(req, res) {
 
     const event = JSON.parse(req.body.toString('utf8'));
 
-    console.log('Razorpay webhook received:', event.event);
-
-    const service = await import('./service.js');
-
     switch (event.event) {
       case 'payment.captured':
-        await service.handlePaymentCaptured(event.payload.payment.entity);
+        await service.paymentCaptured(event.payload.payment.entity);
         break;
 
       case 'payment.failed':
-        await service.handlePaymentFailed(event.payload.payment.entity);
+        await service.paymentFailed(event.payload.payment.entity);
         break;
-
-      default:
-        console.log('Unhandled Razorpay event:', event.event);
     }
 
     return res.status(200).json({ received: true });

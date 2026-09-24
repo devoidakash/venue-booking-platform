@@ -4,7 +4,7 @@ import express from 'express';
 
 import router from './index.routes.js';
 import errorHandler from './middleware/error.handler.js';
-import { handleRazorpayWebhook } from './modules/user/venue/booking/razorpay/controller.js';
+import { razorpayWebhook } from './modules/user/venue/booking/razorpay/controller.js';
 
 const app = express();
 
@@ -15,8 +15,11 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
 );
-app.use('/api/webhooks/razorpay', express.raw({ type: 'application/json' }));
-app.post('/api/webhooks/razorpay', handleRazorpayWebhook);
+app.post(
+  '/api/webhooks/razorpay',
+  express.raw({ type: 'application/json' }),
+  razorpayWebhook
+);
 
 app.use(express.json());
 app.use(cookieParser());

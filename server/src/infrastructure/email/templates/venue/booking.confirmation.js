@@ -45,10 +45,7 @@ function formatTime(value) {
   return `${displayHour}:${minutes} ${period}`;
 }
 
-export function generateBookingConfirmationTemplate({
-  bookingData,
-  venue,
-} = {}) {
+export function generateBookingConfirmationTemplate({ bookingData }) {
   const bookingType =
     bookingData?.bookingType === 'whole_day' ? 'Full-day' : 'Time-based';
   const timeSlot =
@@ -79,8 +76,8 @@ export function generateBookingConfirmationTemplate({
 
 										<div style="padding: 20px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
 											<p style="margin: 0 0 6px; font-size: 12px; color: #166534; text-transform: uppercase; letter-spacing: 0.05em;">Venue</p>
-											<p style="margin: 0 0 6px; font-size: 18px; font-weight: 700; color: #14532d;">${escapeHtml(venue?.name)}</p>
-											<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #166534;">${escapeHtml(venue?.address)}</p>
+											<p style="margin: 0 0 6px; font-size: 18px; font-weight: 700; color: #14532d;">${escapeHtml(bookingData?.venueName)}</p>
+											<p style="margin: 0; font-size: 14px; line-height: 1.5; color: #166534;">${escapeHtml(bookingData?.venueAddress)}</p>
 										</div>
 
 										<table width="100%" cellpadding="0" cellspacing="0" style="margin-top: 24px; border-collapse: collapse;">

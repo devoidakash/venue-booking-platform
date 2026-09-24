@@ -264,10 +264,13 @@ export async function markPaymentPaid(client, paymentId, paymentIdFromGateway) {
 export async function confirmBooking(client, bookingId) {
   const result = await client.query(
     `
-    UPDATE bookings
+    UPDATE bookings as b
     SET status = 'confirmed'
-    WHERE id = $1
-    RETURNING *
+    FROM users AS u, venues AS v
+    WHERE b.id = $1
+      AND b.user_id = u.id
+      AND b.venue_id = v.id
+    RETURNING b.id, b.user_id, b.venue_id, b.booking_date, b.booking_type, b.quantity, b.start_time, b.end_time, b.total_amount, u.email AS user_email, v.name AS venue_name, v.address AS venue_address
     `,
     [bookingId]
   );
@@ -319,18 +322,4 @@ export async function expireStaleBookings() {
     WHERE status = 'pending_payment'
     AND created_at < NOW() - INTERVAL '15 minutes'
   `);
-}
-
-export async function confirmBookingIgnoringExpiry(client, bookingId) {
-  const result = await client.query(
-    `
-    UPDATE bookings
-    SET status = 'confirmed'
-    WHERE id = $1
-      AND status IN ('pending_payment', 'expired')
-    RETURNING *
-    `,
-    [bookingId]
-  );
-  return toCamelCase(result.rows[0]);
 }

@@ -23,19 +23,15 @@ export default async function sendOtpEmail(email, otp) {
   }
 }
 
-export async function sendBookingConfirmationEmail({
-  email,
-  bookingData,
-  venue,
-}) {
+export async function sendBookingConfirmationEmail({ email, bookingData }) {
   const qrDataUrl = await generateBookingQR(bookingData.id);
   const qrContent = qrDataUrl.replace(/^data:image\/png;base64,/, '');
 
   return resend.emails.send({
     from: FROM,
     to: email,
-    subject: `Your Venuz booking for ${venue.name} is confirmed`,
-    html: generateBookingConfirmationTemplate({ bookingData, venue }),
+    subject: `Your Venuz booking for ${bookingData.venueName} is confirmed`,
+    html: generateBookingConfirmationTemplate({ bookingData }),
     attachments: [
       {
         content: Buffer.from(qrContent, 'base64'),
