@@ -180,6 +180,14 @@ export async function verifyPayment(user, bookingId, data) {
       throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
     }
 
+    if (payment.status === 'failed') {
+      throw new ApiError(ERROR_CONFIG.PAYMENT_NOT_CAPTURED);
+    }
+
+    if (payment.status === 'paid') {
+      return await repository.fetchBookingDetails(user.id, bookingId);
+    }
+
     if (payment.gatewayOrderId !== data.razorpayOrderId) {
       throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
     }
@@ -204,19 +212,19 @@ export async function verifyPayment(user, bookingId, data) {
       throw new ApiError(ERROR_CONFIG.PAYMENT_NOT_CAPTURED);
     }
 
-    return withTransaction(pool, async (client) => {
+    const bookingData = await withTransaction(pool, async (client) => {
       await repository.markPaymentPaid(
         client,
         payment.id,
         data.razorpayPaymentId
       );
-      const bookingData = await repository.confirmBooking(client, bookingId);
-      await sendBookingConfirmationEmail({
-        email: user.email,
-        bookingData,
-      });
-      return bookingData;
+      return await repository.confirmBooking(client, bookingId);
     });
+    await sendBookingConfirmationEmail({
+      email: user.email,
+      bookingData,
+    });
+    return bookingData;
   } catch (err) {
     if (err instanceof ApiError) {
       throw err;

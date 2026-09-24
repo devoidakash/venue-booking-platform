@@ -220,12 +220,12 @@ export async function getPaymentForVerification(userId, bookingId) {
     `
     SELECT
       p.id,
-      p.gateway_order_id
+      p.gateway_order_id,
+      p.status
     FROM payments p
     JOIN bookings b ON b.id = p.booking_id
     WHERE p.booking_id = $1
       AND b.user_id = $2
-      AND p.status IN ('pending', 'paid')
     `,
     [bookingId, userId]
   );
@@ -276,6 +276,35 @@ export async function confirmBooking(client, bookingId) {
   );
 
   return toCamelCase(result.rows[0]);
+}
+
+export async function fetchBookingDetails(userId, bookingId) {
+  const result = await pool.query(
+    `
+    SELECT
+      b.id,
+      b.user_id,
+      b.venue_id,
+      b.booking_date,
+      b.booking_type,
+      b.quantity,
+      b.start_time,
+      b.end_time,
+      b.total_amount,
+      u.email AS user_email,
+      v.name AS venue_name,
+      v.address AS venue_address
+    FROM bookings AS b
+    JOIN users AS u ON b.user_id = u.id
+    JOIN venues AS v ON b.venue_id = v.id
+    WHERE b.id = $1
+      AND b.user_id = $2
+      AND b.status = 'confirmed'
+    `,
+    [bookingId, userId]
+  );
+
+  return result.rows[0] ? toCamelCase(result.rows[0]) : null;
 }
 
 export async function fetchBookingsHistory(userId) {
