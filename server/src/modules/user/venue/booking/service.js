@@ -52,8 +52,7 @@ export async function getVenuePricing(venueId) {
 }
 
 export async function createBooking(userId, venueId, data) {
-  const [year, month, dayNum] = data.bookingDate.split('-').map(Number);
-  const day = new Date(year, month - 1, dayNum).getDay();
+  const day = data.bookingDate.getUTCDay();
   const dayType = day == 0 || day == 6 ? 'weekend' : 'weekday';
 
   try {
