@@ -24,7 +24,7 @@ export async function requestOtp(email) {
 }
 
 export async function verifyOtp({ email, otp }, ip) {
-  await redisRepository.verifyAndDeleteOtp(email, ip);
+  await redisRepository.checkVerifyOtpRateLimit(email, ip);
   const matched = await redisRepository.verifyAndDeleteOtp(email, hashOtp(otp));
 
   if (!matched) {
