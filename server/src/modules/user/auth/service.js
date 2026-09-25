@@ -4,27 +4,27 @@ import ApiError from '../../../utils/api.error.js';
 import { withTransaction } from '../../../utils/transaction.js';
 import sendOtpEmail from '../email.service.js';
 import { USER_ERROR_CONFIG } from '../error.config.js';
-import * as otpRepository from './otp.repository.js';
 import { generateOtpPair, matchOtp } from './otp.utils.js';
+import * as redisRepository from './redis.repository.js';
 import * as repository from './repository.js';
 import * as token from './token.js';
 
 export async function requestOtp(email) {
-  await otpRepository.checkCoolDown(email);
-  await otpRepository.checkRateLimit(email);
+  await redisRepository.checkCoolDown(email);
+  await redisRepository.checkRateLimit(email);
   const { otp, hashedOtp } = generateOtpPair();
-  await otpRepository.storeOtp(email, hashedOtp);
+  await redisRepository.storeOtp(email, hashedOtp);
 
   try {
     await sendOtpEmail(email, otp);
   } catch (err) {
-    await otpRepository.deleteOtp(email);
+    await redisRepository.deleteOtp(email);
     throw err;
   }
 }
 
 export async function verifyOtp({ email, otp }) {
-  const hashedOtp = await otpRepository.getOtp(email);
+  const hashedOtp = await redisRepository.getOtp(email);
 
   if (!hashedOtp || !matchOtp(otp, hashedOtp)) {
     throw new ApiError(USER_ERROR_CONFIG.INVALID_OR_EXPIRED_OTP);
@@ -36,7 +36,7 @@ export async function verifyOtp({ email, otp }) {
     const accessToken = token.generateAccessToken(userId);
     return { accessToken, refreshToken };
   });
-  await otpRepository.deleteOtp(email);
+  await redisRepository.deleteOtp(email);
   return authTokens;
 }
 
