@@ -12,12 +12,12 @@ export async function findUserById(client, userId) {
 
 export async function findUserByEmail(client, email) {
   const result = await client.query(
-    `SELECT id 
+    `SELECT id, status
      FROM users 
      WHERE email = $1`,
     [email]
   );
-  return result.rows[0]?.id ?? null;
+  return result.rows[0] ?? null;
 }
 
 export async function createUser(client, email) {

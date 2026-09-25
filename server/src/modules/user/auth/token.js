@@ -1,13 +1,13 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
-export function generateAuthToken() {
-  const rawToken = crypto.randomBytes(32).toString('hex');
-  const hashedToken = crypto
+export function generateRefreshToken() {
+  const rawRefreshToken = crypto.randomBytes(32).toString('hex');
+  const hashedRefreshToken = crypto
     .createHash('sha256')
     .update(rawToken)
     .digest('hex');
-  return { rawToken, hashedToken };
+  return { rawRefreshToken, hashedRefreshToken };
 }
 
 export function generateHash(value) {

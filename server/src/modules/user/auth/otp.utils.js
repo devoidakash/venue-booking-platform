@@ -10,17 +10,9 @@ export function generateOtpPair() {
   return { otp, hashedOtp };
 }
 
-export function matchOtp(otp, hashedOtp) {
-  const generatedHash = crypto
+export function hashOtp(otp) {
+  return crypto
     .createHmac('sha256', process.env.OTP_SECRET)
     .update(otp.toString())
     .digest('hex');
-
-  const bufferA = Buffer.from(generatedHash, 'hex');
-  const bufferB = Buffer.from(hashedOtp, 'hex');
-
-  if (bufferA.length !== bufferB.length) {
-    return false;
-  }
-  return crypto.timingSafeEqual(bufferA, bufferB);
 }
