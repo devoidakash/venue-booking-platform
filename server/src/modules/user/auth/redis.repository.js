@@ -8,7 +8,7 @@ import ApiError from '../../../utils/api.error.js';
 import { USER_ERROR_CONFIG } from '../error.config.js';
 import { AUTH_CONFIG } from './config.js';
 
-export async function checkCoolDown(email) {
+export async function checkOtpRequestCoolDown(email) {
   const key = `${AUTH_CONFIG.OTP_COOLDOWN_PREFIX}${email}`;
 
   const result = await redis.set(key, '1', {
@@ -22,23 +22,22 @@ export async function checkCoolDown(email) {
   }
 }
 
-export async function checkRateLimit(email) {
-  const { success, reset } = await otpSendLimiter.limit(email);
+export async function checkOtpRequestRateLimit(email) {
+  const { success } = await otpSendLimiter.limit(email);
 
   if (!success) {
-    const remainingMinutes = Math.ceil((reset - Date.now()) / (1000 * 60));
-
-    throw new ApiError({
-      statusCode: 429,
-      message: `Too many OTP requests. Please try again in ${remainingMinutes} minutes.`,
-      code: 'OTP_RATE_LIMIT_EXCEEDED',
-    });
+    throw new ApiError(USER_ERROR_CONFIG.OTP_REQUEST_LIMIT);
   }
 }
 
 export async function storeOtp(email, hashedOtp) {
   const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
   await redis.set(key, hashedOtp, { ex: AUTH_CONFIG.OTP_TTL });
+}
+
+export async function deleteOtp(email) {
+  const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
+  return redis.del(key);
 }
 
 export async function checkVerifyOtpRateLimit(email, ip) {

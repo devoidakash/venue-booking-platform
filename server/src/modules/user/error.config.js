@@ -47,7 +47,7 @@ export const USER_ERROR_CONFIG = {
   },
   OTP_REQUEST_LIMIT: {
     statusCode: 429,
-    message: 'Please wait before requesting another OTP',
+    message: 'Too many OTP requests. Please try again later.',
     code: 'OTP_REQUEST_LIMIT',
   },
   OTP_VERIFY_RATE_LIMIT_EXCEEDED: {

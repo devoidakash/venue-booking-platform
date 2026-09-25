@@ -10,8 +10,8 @@ import * as repository from './repository.js';
 import * as token from './token.js';
 
 export async function requestOtp(email) {
-  await redisRepository.checkCoolDown(email);
-  await redisRepository.checkRateLimit(email);
+  await redisRepository.checkOtpRequestCoolDown(email);
+  await redisRepository.checkOtpRequestRateLimit(email);
   const { otp, hashedOtp } = generateOtpPair();
   await redisRepository.storeOtp(email, hashedOtp);
 
