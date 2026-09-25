@@ -9,15 +9,12 @@ const FROM = 'Venuz <noreply@venuz.shop>';
 
 export default async function sendOtpEmail(email, otp) {
   try {
-    const response = await resend.emails.send({
+    await resend.emails.send({
       from: FROM,
       to: email,
       subject: 'Your Venuz Verification Code',
       html: generateOtpTemplate(otp),
     });
-
-    console.log(otp);
-    return response;
   } catch (error) {
     throw new ApiError(ERROR_CONFIG.EMAIL_SEND_FAILED);
   }
