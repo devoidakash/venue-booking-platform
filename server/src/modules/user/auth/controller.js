@@ -11,7 +11,7 @@ export async function requestOtp(req, res) {
 }
 
 export async function verifyOtp(req, res) {
-  const data = await service.verifyOtp(req.body);
+  const data = await service.verifyOtp(req.body, req.ip);
 
   res.cookie(
     AUTH_CONFIG.ACCESS_COOKIE,

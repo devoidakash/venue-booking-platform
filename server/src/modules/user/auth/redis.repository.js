@@ -1,6 +1,8 @@
-import { stat } from 'node:fs';
-
-import { otpRateLimiter } from '../../../infrastructure/redis/ratelimit.js';
+import {
+  otpSendLimiter,
+  otpVerifyEmailLimiter,
+  otpVerifyIpLimiter,
+} from '../../../infrastructure/redis/ratelimit.js';
 import { redis } from '../../../infrastructure/redis/redis.js';
 import ApiError from '../../../utils/api.error.js';
 import { USER_ERROR_CONFIG } from '../error.config.js';
@@ -16,16 +18,12 @@ export async function checkCoolDown(email) {
 
   if (result === null) {
     const ttl = await redis.ttl(key);
-    throw new ApiError({
-      statusCode: 429,
-      message: `Please wait ${ttl} seconds before requesting another OTP`,
-      code: 'OTP_REQUEST_LIMIT',
-    });
+    throw new ApiError(USER_ERROR_CONFIG.OTP_REQUEST_LIMIT);
   }
 }
 
 export async function checkRateLimit(email) {
-  const { success, reset } = await otpRateLimiter.limit(email);
+  const { success, reset } = await otpSendLimiter.limit(email);
 
   if (!success) {
     const remainingMinutes = Math.ceil((reset - Date.now()) / (1000 * 60));
@@ -43,12 +41,25 @@ export async function storeOtp(email, hashedOtp) {
   await redis.set(key, hashedOtp, { ex: AUTH_CONFIG.OTP_TTL });
 }
 
-export async function getOtp(email) {
-  const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
-  return await redis.get(key);
+export async function checkVerifyOtpRateLimit(email, ip) {
+  const emailResult = await otpVerifyEmailLimiter.limit(email);
+  const ipResult = await otpVerifyIpLimiter.limit(ip);
+
+  if (!emailResult.success || !ipResult.success) {
+    throw new ApiError(USER_ERROR_CONFIG.OTP_VERIFY_RATE_LIMIT_EXCEEDED);
+  }
 }
 
-export async function deleteOtp(email) {
+export async function verifyAndDeleteOtp(email, hashedOtp) {
+  const luaScript = `
+  local stored = redis.call("GET", KEYS[1])
+  if stored == ARGV[1] then
+    redis.call("DEL", KEYS[1])
+    return stored
+  else
+    return false
+  end
+  `;
   const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
-  await redis.del(key);
+  return await redis.eval(luaScript, 1, key, hashedOtp);
 }
