@@ -19,11 +19,7 @@ export const USER_ERROR_CONFIG = {
     message: 'Invalid or expired OTP',
     code: 'INVALID_OR_EXPIRED_OTP',
   },
-  OTP_RATE_LIMIT_EXCEEDED: {
-    statusCode: 429,
-    message: 'Too many OTP requests. Please try again after 10 minutes.',
-    code: 'OTP_RATE_LIMIT_EXCEEDED',
-  },
+
   ACCESS_TOKEN_MISSING: {
     statusCode: 401,
     message: 'Authentication required.',

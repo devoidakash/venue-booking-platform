@@ -1,14 +1,15 @@
 const isProd = process.env.NODE_ENV === 'production';
 
 export const AUTH_CONFIG = {
-  OTP_PREFIX: 'user:otp:',
-  OTP_RATE_LIMIT_PREFIX: 'user:otp:rate:',
-  OTP_COOLDOWN_PREFIX: 'user:otp:cooldown:',
-
+  OTP_PREFIX: 'otp:',
   OTP_TTL: 600,
+
+  OTP_COOLDOWN_PREFIX: 'otp:cooldown',
   OTP_COOLDOWN_TTL: 60,
-  OTP_RATE_LIMIT_TTL: 600,
-  OTP_MAX_REQUESTS: 5,
+
+  OTP_RATE_LIMIT_PREFIX: 'otp:ratelimit',
+  OTP_RATE_LIMIT_MAX_REQUESTS: 5,
+  OTP_RATE_LIMIT_WINDOW: '10 m',
 
   ACCESS_COOKIE: 'user_sid',
   REFRESH_COOKIE: 'user_rid',
