@@ -127,8 +127,12 @@ export default function LoginForm() {
       await verifyOtp({ email, otp });
       const redirectTo = searchParams.get("redirect") || "/";
       navigate(redirectTo);
-    } catch {
-      setError("Invalid or expired OTP.");
+    } catch (err) {
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Invalid or expired OTP.",
+      );
     } finally {
       setSubmitting(false);
     }
