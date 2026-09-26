@@ -90,7 +90,7 @@ export async function loginWithGoogle(data) {
       'google',
       data.sub
     );
-    return await createSession(client, userId);
+    return createSession(client, userId);
   });
 }
 
@@ -102,7 +102,7 @@ export async function rotateSession(refreshToken) {
   const hashedRefreshToken = token.generateTokenHash(refreshToken);
 
   return await withTransaction(pool, async (client) => {
-    const userId = await repository.markRefreshTokenAsRevoked(
+    const { userId } = await repository.markRefreshTokenAsRevoked(
       client,
       hashedRefreshToken
     );
@@ -111,11 +111,7 @@ export async function rotateSession(refreshToken) {
       throw new ApiError(ERROR_CONFIG.SESSION_EXPIRED);
     }
 
-    const session = await createSession(client, userId);
-    return {
-      accessToken: session.accessToken,
-      refreshToken: session.refreshToken,
-    };
+    return createSession(client, userId);
   });
 }
 
@@ -125,5 +121,5 @@ export async function logout(refreshToken) {
   }
   const hashedRefreshToken = token.generateTokenHash(refreshToken);
 
-  await repository.markRefreshTokenAsRevoked(hashedRefreshToken);
+  await repository.markRefreshTokenAsRevoked(pool, hashedRefreshToken);
 }

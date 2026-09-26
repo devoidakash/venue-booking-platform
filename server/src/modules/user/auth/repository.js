@@ -1,4 +1,5 @@
 import { pool } from '../../../infrastructure/database/db.js';
+import toCamelCase from '../../../utils/camelcase.conversion.js';
 
 export async function findUserById(client, userId) {
   const result = await client.query(
@@ -58,22 +59,16 @@ export async function createRefreshToken(client, data) {
   );
 }
 
-export async function markRefreshTokenAsRevoked(
-  clientOrTokenHash,
-  maybeTokenHash
-) {
-  const client = maybeTokenHash ? clientOrTokenHash : pool;
-  const tokenHash = maybeTokenHash ?? clientOrTokenHash;
-
+export async function markRefreshTokenAsRevoked(client, tokenHash) {
   const result = await client.query(
     `UPDATE refresh_tokens
-    SET revoked_at = NOW()
-    WHERE token_hash = $1
-    AND revoked_at IS NULL
-    AND expires_at > NOW()
-    RETURNING user_id`,
+     SET revoked_at = NOW()
+     WHERE token_hash = $1
+     AND revoked_at IS NULL
+     AND expires_at > NOW()
+     RETURNING user_id`,
     [tokenHash]
   );
 
-  return result.rows[0]?.user_id ?? null;
+  return toCamelCase(result.rows[0]) ?? null;
 }

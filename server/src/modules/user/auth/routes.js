@@ -27,11 +27,6 @@ router.get('/auth/me', authenticateToken, ensureAccountActive, controller.me);
 
 router.post('/auth/refresh', controller.rotateSession);
 
-router.post(
-  '/auth/logout',
-  authenticateToken,
-  ensureAccountActive,
-  controller.logout
-);
+router.post('/auth/logout', controller.logout);
 
 export default router;
