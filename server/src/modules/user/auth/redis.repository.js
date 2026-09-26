@@ -1,7 +1,7 @@
 import {
+  IpRateLimiter,
+  emailRateLimiter,
   otpSendLimiter,
-  otpVerifyEmailLimiter,
-  otpVerifyIpLimiter,
 } from '../../../infrastructure/redis/ratelimit.js';
 import { redis } from '../../../infrastructure/redis/redis.js';
 import ApiError from '../../../utils/api.error.js';
@@ -50,8 +50,8 @@ export async function storeOtp(email, hashedOtp) {
 }
 
 export async function checkVerifyOtpRateLimit(email, ip) {
-  const emailResult = await otpVerifyEmailLimiter.limit(email);
-  const ipResult = await otpVerifyIpLimiter.limit(ip);
+  const emailResult = await emailRateLimiter.limit(email);
+  const ipResult = await IpRateLimiter.limit(ip);
 
   if (!emailResult.success || !ipResult.success) {
     throw new ApiError(USER_ERROR_CONFIG.OTP_VERIFY_RATE_LIMIT_EXCEEDED);
