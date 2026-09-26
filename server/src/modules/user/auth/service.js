@@ -4,6 +4,7 @@ import ApiError from '../../../utils/api.error.js';
 import { withTransaction } from '../../../utils/transaction.js';
 import sendOtpEmail from '../email.service.js';
 import { USER_ERROR_CONFIG } from '../error.config.js';
+import { USER_AUTH_CONFIG } from './config.js';
 import { generateOtpPair, hashOtp } from './otp.utils.js';
 import * as redisRepository from './redis.repository.js';
 import * as repository from './repository.js';
@@ -75,7 +76,7 @@ async function createSession(client, userId) {
   await repository.createRefreshToken(client, {
     userId,
     tokenHash: hashedRefreshToken,
-    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    expiresAt: new Date(Date.now() + USER_AUTH_CONFIG.REFRESH_MAX_AGE),
   });
   const accessToken = token.generateAccessToken(userId);
   return { refreshToken, accessToken };

@@ -30,6 +30,7 @@ export const USER_AUTH_CONFIG = {
       secure: isProd,
       sameSite: 'lax',
       maxAge: this.ACCESS_MAX_AGE,
+      path: '/api',
     };
   },
 
@@ -39,6 +40,7 @@ export const USER_AUTH_CONFIG = {
       secure: isProd,
       sameSite: 'lax',
       maxAge: this.REFRESH_MAX_AGE,
+      path: '/api',
     };
   },
 
@@ -47,6 +49,7 @@ export const USER_AUTH_CONFIG = {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
+      path: '/api',
     };
   },
 
@@ -55,6 +58,7 @@ export const USER_AUTH_CONFIG = {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
+      path: '/api',
     };
   },
 
