@@ -18,8 +18,22 @@ export async function checkOtpRequestCoolDown(email) {
 
   if (result === null) {
     const ttl = await redis.ttl(key);
-    throw new ApiError(USER_ERROR_CONFIG.OTP_REQUEST_LIMIT);
+    throw new ApiError({
+      statusCode: 429,
+      message: `Please wait ${ttl} seconds before requesting a new OTP.`,
+      code: 'OTP_REQUEST_COOLDOWN',
+    });
   }
+}
+
+export async function deleteOtp(email) {
+  const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
+  return redis.del(key);
+}
+
+export async function resetOtpRequestCoolDown(email) {
+  const key = `${AUTH_CONFIG.OTP_COOLDOWN_PREFIX}${email}`;
+  return redis.del(key);
 }
 
 export async function checkOtpRequestRateLimit(email) {
@@ -33,11 +47,6 @@ export async function checkOtpRequestRateLimit(email) {
 export async function storeOtp(email, hashedOtp) {
   const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
   await redis.set(key, hashedOtp, { ex: AUTH_CONFIG.OTP_TTL });
-}
-
-export async function deleteOtp(email) {
-  const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
-  return redis.del(key);
 }
 
 export async function checkVerifyOtpRateLimit(email, ip) {

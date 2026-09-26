@@ -2,12 +2,12 @@ import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 
 export function generateRefreshToken() {
-  const rawRefreshToken = crypto.randomBytes(32).toString('hex');
+  const refreshToken = crypto.randomBytes(32).toString('hex');
   const hashedRefreshToken = crypto
     .createHash('sha256')
-    .update(rawToken)
+    .update(refreshToken)
     .digest('hex');
-  return { rawRefreshToken, hashedRefreshToken };
+  return { refreshToken, hashedRefreshToken };
 }
 
 export function generateHash(value) {

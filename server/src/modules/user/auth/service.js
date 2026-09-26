@@ -19,6 +19,7 @@ export async function requestOtp(email) {
     await sendOtpEmail(email, otp);
   } catch (err) {
     await redisRepository.deleteOtp(email);
+    await redisRepository.resetOtpRequestCoolDown(email);
     throw err;
   }
 }
@@ -64,7 +65,7 @@ async function findOrCreateUser(
 }
 
 async function createSession(client, userId) {
-  const { rawRefreshToken, hashedRefreshToken } = token.generateRefreshToken();
+  const { refreshToken, hashedRefreshToken } = token.generateRefreshToken();
 
   await repository.createRefreshToken(client, {
     userId,
@@ -72,7 +73,7 @@ async function createSession(client, userId) {
     expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   });
   const accessToken = token.generateAccessToken(userId);
-  return { rawRefreshToken, accessToken };
+  return { refreshToken, accessToken };
 }
 
 export async function loginWithGoogle(data) {
@@ -83,7 +84,7 @@ export async function loginWithGoogle(data) {
       'google',
       data.sub
     );
-    const refreshToken = await createRefreshSession(client, userId);
+    const refreshToken = await createRefreshToken(client, userId);
     const accessToken = token.generateAccessToken(userId);
 
     return { accessToken, refreshToken };
@@ -97,7 +98,7 @@ export async function rotateSession(refreshToken) {
 
   const hashedRefreshToken = token.generateHash(refreshToken);
 
-  const { userId, rawRefreshToken } = await withTransaction(
+  const { userId, refreshToken } = await withTransaction(
     pool,
     async (client) => {
       const userId = await repository.markRefreshTokenAsRevoked(
@@ -109,13 +110,13 @@ export async function rotateSession(refreshToken) {
         throw new ApiError(ERROR_CONFIG.SESSION_EXPIRED);
       }
 
-      const rawRefreshToken = await createRefreshSession(client, userId);
-      return { userId, rawRefreshToken };
+      const refreshToken = await createRefreshSession(client, userId);
+      return { userId, refreshToken };
     }
   );
 
   const accessToken = token.generateAccessToken(userId);
-  return { accessToken, refreshToken: rawRefreshToken };
+  return { accessToken, refreshToken: refreshToken };
 }
 
 export async function logout(refreshToken) {
