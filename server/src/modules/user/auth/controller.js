@@ -34,20 +34,27 @@ export async function redirectToGoogleAuth(req, res) {
     `client_id=${process.env.GOOGLE_CLIENT_ID}` +
     `&redirect_uri=${encodeURIComponent(process.env.GOOGLE_CALLBACK_URL)}` +
     `&response_type=code` +
-    `&scope=openid%20email%20profile`;
+    `&scope=openid%20email`;
 
   res.redirect(googleAuthUrl);
 }
 
 export async function loginWithGoogle(req, res) {
-  const { code } = req.query;
-  const { tokens } = await googleClient.getToken(code);
+  const { code, error } = req.query;
 
+  if (error || !code) {
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/login?error=google_auth_failed`
+    );
+  }
+
+  const { tokens } = await googleClient.getToken(code);
   const ticket = await googleClient.verifyIdToken({
     idToken: tokens.id_token,
     audience: process.env.GOOGLE_CLIENT_ID,
   });
   const payload = ticket.getPayload();
+
   const data = await service.loginWithGoogle(payload);
 
   res.cookie(
