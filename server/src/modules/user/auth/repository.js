@@ -20,6 +20,16 @@ export async function findUserByEmail(client, email) {
   return result.rows[0] ?? null;
 }
 
+export async function createAuthMethodIfNotExists(client, data) {
+  return client.query(
+    `
+  INSERT INTO user_auth_methods (user_id, auth_provider, provider_identifier)
+  VALUES ($1, $2, $3)
+  ON CONFLICT (user_id, auth_provider) DO NOTHING`,
+    [data.userId, data.authProvider, data.providerIdentifier]
+  );
+}
+
 export async function createUser(client, email) {
   const result = await client.query(
     `INSERT INTO users (email)
@@ -31,7 +41,7 @@ export async function createUser(client, email) {
 }
 
 export async function createAuthMethod(client, data) {
-  await client.query(
+  return client.query(
     `INSERT INTO user_auth_methods
      (user_id, auth_provider, provider_identifier)
      VALUES ($1, $2, $3)`,
@@ -48,8 +58,8 @@ export async function createRefreshToken(client, data) {
   );
 }
 
-export async function markRefreshTokenAsRevoked(tokenHash) {
-  await pool.query(
+export async function markRefreshTokenAsRevoked(client, tokenHash) {
+  await client.query(
     `UPDATE refresh_tokens
     SET revoked_at = NOW()
     WHERE token_hash = $1

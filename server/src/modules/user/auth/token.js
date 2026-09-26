@@ -10,7 +10,7 @@ export function generateRefreshToken() {
   return { refreshToken, hashedRefreshToken };
 }
 
-export function generateHash(value) {
+export function generateTokenHash(value) {
   return crypto.createHash('sha256').update(value).digest('hex');
 }
 

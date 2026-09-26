@@ -50,6 +50,11 @@ async function findOrCreateUser(
     if (user.status === 'banned') {
       throw new ApiError(USER_ERROR_CONFIG.USER_BANNED);
     }
+    await repository.createAuthMethodIfNotExists(client, {
+      userId: user.id,
+      authProvider,
+      providerIdentifier,
+    });
     return user.id;
   }
 
@@ -84,46 +89,43 @@ export async function loginWithGoogle(data) {
       'google',
       data.sub
     );
-    const refreshToken = await createRefreshToken(client, userId);
-    const accessToken = token.generateAccessToken(userId);
-
-    return { accessToken, refreshToken };
+    return await createSession(client, userId);
   });
 }
 
-export async function rotateSession(refreshToken) {
-  if (!refreshToken) {
-    throw new ApiError(ERROR_CONFIG.SESSION_EXPIRED);
-  }
+// export async function rotateSession(refreshToken) {
+//   if (!refreshToken) {
+//     throw new ApiError(ERROR_CONFIG.SESSION_EXPIRED);
+//   }
 
-  const hashedRefreshToken = token.generateHash(refreshToken);
+//   const hashedRefreshToken = token.generateTokenHash(refreshToken);
 
-  const { userId, refreshToken } = await withTransaction(
-    pool,
-    async (client) => {
-      const userId = await repository.markRefreshTokenAsRevoked(
-        client,
-        hashedRefreshToken
-      );
+//   const { userId, refreshToken } = await withTransaction(
+//     pool,
+//     async (client) => {
+//       const userId = await repository.markRefreshTokenAsRevoked(
+//         client,
+//         hashedRefreshToken
+//       );
 
-      if (!userId) {
-        throw new ApiError(ERROR_CONFIG.SESSION_EXPIRED);
-      }
+//       if (!userId) {
+//         throw new ApiError(ERROR_CONFIG.SESSION_EXPIRED);
+//       }
 
-      const refreshToken = await createRefreshSession(client, userId);
-      return { userId, refreshToken };
-    }
-  );
+//       const refreshToken = await createRefreshSession(client, userId);
+//       return { userId, refreshToken };
+//     }
+//   );
 
-  const accessToken = token.generateAccessToken(userId);
-  return { accessToken, refreshToken: refreshToken };
-}
+//   const accessToken = token.generateAccessToken(userId);
+//   return { accessToken, refreshToken: refreshToken };
+// }
 
 export async function logout(refreshToken) {
   if (!refreshToken) {
     throw new ApiError(ERROR_CONFIG.SESSION_EXPIRED);
   }
-  const hashedRefreshToken = token.generateHash(refreshToken);
+  const hashedRefreshToken = token.generateTokenHash(refreshToken);
 
   await repository.markRefreshTokenAsRevoked(hashedRefreshToken);
 }

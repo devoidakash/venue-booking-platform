@@ -55,6 +55,12 @@ export async function loginWithGoogle(req, res) {
   });
   const payload = ticket.getPayload();
 
+  if (!payload.email_verified) {
+    return res.redirect(
+      `${process.env.FRONTEND_URL}/login?error=email_not_verified`
+    );
+  }
+
   const data = await service.loginWithGoogle(payload);
 
   res.cookie(
