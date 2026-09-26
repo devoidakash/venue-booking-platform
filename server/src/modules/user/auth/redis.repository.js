@@ -69,5 +69,5 @@ export async function verifyAndDeleteOtp(email, hashedOtp) {
   end
   `;
   const key = `${USER_AUTH_CONFIG.OTP_PREFIX}${email}`;
-  return await redis.eval(luaScript, 1, key, hashedOtp);
+  return await redis.eval(luaScript, [key], [hashedOtp]);
 }
