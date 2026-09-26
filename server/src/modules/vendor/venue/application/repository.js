@@ -8,7 +8,7 @@ export async function findVenueGroupId(vendorId, venueGroupId) {
   WHERE vendor_id = $1 AND venue_group_id = $2 AND status = 'rejected'`,
     [vendorId, venueGroupId]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function insertIntoVenueApplications(client, data) {

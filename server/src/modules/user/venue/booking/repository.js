@@ -97,7 +97,7 @@ export async function getExistingBooking(data) {
       data.totalAmount,
     ]
   );
-  return result.rows[0] ? toCamelCase(result.rows[0]) : null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function insertWholeDayBooking(data) {
@@ -200,7 +200,7 @@ export async function fetchExistingOrderId(bookingId) {
     `,
     [bookingId]
   );
-  return result.rows[0] ? toCamelCase(result.rows[0]) : null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function insertOrderId(data) {
@@ -230,7 +230,7 @@ export async function getPaymentForVerification(userId, bookingId) {
     [bookingId, userId]
   );
 
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function markPaymentFailed(paymentId) {
@@ -304,7 +304,7 @@ export async function fetchBookingDetails(userId, bookingId) {
     [bookingId, userId]
   );
 
-  return result.rows[0] ? toCamelCase(result.rows[0]) : null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function fetchBookingsHistory(userId) {

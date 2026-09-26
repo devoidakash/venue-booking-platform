@@ -60,7 +60,7 @@ export async function markVendorAsApproved(client, data) {
     [data.reviewedBy, data.applicationId]
   );
 
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function createVendorProfile(client, data) {
@@ -105,7 +105,7 @@ export async function markVendorAsRejected(client, data) {
     [data.rejectionReason, data.reviewerId, data.applicationId]
   );
 
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function fetchVenodrProfile(client, vendorId) {
@@ -128,5 +128,5 @@ export async function fetchVenodrProfile(client, vendorId) {
     [vendorId]
   );
 
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }

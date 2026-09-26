@@ -7,7 +7,7 @@ export async function fetchPaymentByGatewayOrderId(orderId) {
     `SELECT id, booking_id, status FROM payments WHERE gateway_order_id = $1`,
     [orderId]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function markBookingAndPaymentFailed(paymentId, bookingId) {

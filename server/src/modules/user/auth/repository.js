@@ -70,5 +70,5 @@ export async function markRefreshTokenAsRevoked(client, tokenHash) {
     [tokenHash]
   );
 
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }

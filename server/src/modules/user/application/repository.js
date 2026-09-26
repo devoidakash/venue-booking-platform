@@ -10,7 +10,7 @@ export async function fetchLatestApplicationStatus(userId) {
       DESC LIMIT 1`,
     [userId]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function insertVendorApplication(client, data) {

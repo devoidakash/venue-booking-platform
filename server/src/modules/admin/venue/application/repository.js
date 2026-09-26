@@ -81,7 +81,7 @@ export async function markVenueAsRejected(reviewerId, applicationId, data) {
     JOIN users u ON u.id = vp.user_id`,
     [data.rejectionReason, reviewerId, applicationId]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function findVendorContact(client, vendorId) {
@@ -92,7 +92,7 @@ export async function findVendorContact(client, vendorId) {
      WHERE vp.id = $1`,
     [vendorId]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function markVenueAsApproved(client, reviewerId, applicationId) {
@@ -103,7 +103,7 @@ export async function markVenueAsApproved(client, reviewerId, applicationId) {
     RETURNING id, vendor_id, name, category, address, district, state, pincode, geo_loc`,
     [reviewerId, applicationId]
   );
-  return toCamelCase(result.rows[0]) ?? null;
+  return toCamelCase(result.rows[0]);
 }
 
 export async function createVenue(client, data) {
