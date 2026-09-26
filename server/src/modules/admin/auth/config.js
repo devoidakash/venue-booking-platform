@@ -11,6 +11,7 @@ export const ADMIN_AUTH_CONFIG = {
       secure: isProd,
       sameSite: 'lax',
       maxAge: this.SESSION_TTL * 1000,
+      path: '/api/admin',
     };
   },
 
@@ -19,6 +20,7 @@ export const ADMIN_AUTH_CONFIG = {
       httpOnly: true,
       secure: isProd,
       sameSite: 'lax',
+      path: '/api/admin',
     };
   },
 };
