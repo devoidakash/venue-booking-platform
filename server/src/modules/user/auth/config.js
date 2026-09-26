@@ -1,6 +1,6 @@
 const isProd = process.env.NODE_ENV === 'production';
 
-export const AUTH_CONFIG = {
+export const USER_AUTH_CONFIG = {
   OTP_PREFIX: 'otp:',
   OTP_TTL: 600,
 
@@ -28,7 +28,7 @@ export const AUTH_CONFIG = {
     return {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',
       maxAge: this.ACCESS_MAX_AGE,
     };
   },
@@ -37,7 +37,7 @@ export const AUTH_CONFIG = {
     return {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',
       maxAge: this.REFRESH_MAX_AGE,
     };
   },
@@ -46,7 +46,7 @@ export const AUTH_CONFIG = {
     return {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',
     };
   },
 
@@ -54,7 +54,26 @@ export const AUTH_CONFIG = {
     return {
       httpOnly: true,
       secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
+      sameSite: 'lax',
+    };
+  },
+
+  STATE_COOKIE: 'oauth_state',
+  STATE_MAX_AGE: 5 * 60 * 1000,
+
+  get STATE_COOKIE_OPTIONS() {
+    return {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
+      maxAge: this.STATE_MAX_AGE,
+    };
+  },
+  get STATE_COOKIE_CLEAR_OPTIONS() {
+    return {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: 'lax',
     };
   },
 };

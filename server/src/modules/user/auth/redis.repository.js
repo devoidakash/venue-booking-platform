@@ -6,14 +6,14 @@ import {
 import { redis } from '../../../infrastructure/redis/redis.js';
 import ApiError from '../../../utils/api.error.js';
 import { USER_ERROR_CONFIG } from '../error.config.js';
-import { AUTH_CONFIG } from './config.js';
+import { USER_AUTH_CONFIG } from './config.js';
 
 export async function checkOtpRequestCoolDown(email) {
-  const key = `${AUTH_CONFIG.OTP_COOLDOWN_PREFIX}${email}`;
+  const key = `${USER_AUTH_CONFIG.OTP_COOLDOWN_PREFIX}${email}`;
 
   const result = await redis.set(key, '1', {
     nx: true,
-    ex: AUTH_CONFIG.OTP_COOLDOWN_TTL,
+    ex: USER_AUTH_CONFIG.OTP_COOLDOWN_TTL,
   });
 
   if (result === null) {
@@ -27,12 +27,12 @@ export async function checkOtpRequestCoolDown(email) {
 }
 
 export async function deleteOtp(email) {
-  const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
+  const key = `${USER_AUTH_CONFIG.OTP_PREFIX}${email}`;
   return redis.del(key);
 }
 
 export async function resetOtpRequestCoolDown(email) {
-  const key = `${AUTH_CONFIG.OTP_COOLDOWN_PREFIX}${email}`;
+  const key = `${USER_AUTH_CONFIG.OTP_COOLDOWN_PREFIX}${email}`;
   return redis.del(key);
 }
 
@@ -45,8 +45,8 @@ export async function checkOtpRequestRateLimit(email) {
 }
 
 export async function storeOtp(email, hashedOtp) {
-  const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
-  await redis.set(key, hashedOtp, { ex: AUTH_CONFIG.OTP_TTL });
+  const key = `${USER_AUTH_CONFIG.OTP_PREFIX}${email}`;
+  await redis.set(key, hashedOtp, { ex: USER_AUTH_CONFIG.OTP_TTL });
 }
 
 export async function checkVerifyOtpRateLimit(email, ip) {
@@ -68,6 +68,6 @@ export async function verifyAndDeleteOtp(email, hashedOtp) {
     return false
   end
   `;
-  const key = `${AUTH_CONFIG.OTP_PREFIX}${email}`;
+  const key = `${USER_AUTH_CONFIG.OTP_PREFIX}${email}`;
   return await redis.eval(luaScript, 1, key, hashedOtp);
 }

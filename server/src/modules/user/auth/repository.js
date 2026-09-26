@@ -25,7 +25,7 @@ export async function createAuthMethodIfNotExists(client, data) {
     `
   INSERT INTO user_auth_methods (user_id, auth_provider, provider_identifier)
   VALUES ($1, $2, $3)
-  ON CONFLICT (user_id, auth_provider) DO NOTHING`,
+  ON CONFLICT (auth_provider, provider_identifier) DO NOTHING`,
     [data.userId, data.authProvider, data.providerIdentifier]
   );
 }
@@ -58,13 +58,22 @@ export async function createRefreshToken(client, data) {
   );
 }
 
-export async function markRefreshTokenAsRevoked(client, tokenHash) {
-  await client.query(
+export async function markRefreshTokenAsRevoked(
+  clientOrTokenHash,
+  maybeTokenHash
+) {
+  const client = maybeTokenHash ? clientOrTokenHash : pool;
+  const tokenHash = maybeTokenHash ?? clientOrTokenHash;
+
+  const result = await client.query(
     `UPDATE refresh_tokens
     SET revoked_at = NOW()
     WHERE token_hash = $1
     AND revoked_at IS NULL
-    AND expires_at > NOW()`,
+    AND expires_at > NOW()
+    RETURNING user_id`,
     [tokenHash]
   );
+
+  return result.rows[0]?.user_id ?? null;
 }
