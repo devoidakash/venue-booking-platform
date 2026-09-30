@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 
+import storageKeys from '../../../../config/storageKeys.js';
 import pool from '../../../../infrastructure/database/db.js';
 import razorpay from '../../../../infrastructure/razorpay/razorpay.js';
 import ApiError from '../../../../utils/api.error.js';
@@ -10,15 +11,18 @@ import * as repository from '../booking/repository.js';
 import { ERROR_CONFIG } from './error.config.js';
 
 export async function getVenues() {
-  const data = await repository.getVenues();
+  const venues = await repository.getVenues();
 
   return Promise.all(
-    data.map(async (venue) => {
-      const { vendorId, ...publicVenue } = venue;
-      const coverImageId = [`venues/${vendorId}/${venue.id}/cover_image`];
+    venues.map(async (venue) => {
+      const { vendorId, ...data } = venue;
+      const coverImageKey = storageKeys.getVenueCoverImageKey(
+        vendorId,
+        data.id
+      );
       return {
-        ...publicVenue,
-        cover_img_url: (await getFromCloudinary(coverImageId))[0],
+        ...data,
+        coverImage: (await getFromCloudinary([coverImageKey]))[0],
       };
     })
   );

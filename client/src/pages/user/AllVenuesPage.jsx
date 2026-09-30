@@ -32,7 +32,7 @@ function VenueCard({ venue }) {
     <Card className="overflow-hidden border-0 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
       <Link to={`/venues/${venue.id}`} className="block overflow-hidden">
         <img
-          src={venue.cover_img_url}
+          src={venue.coverImage}
           alt={venue.name}
           className="aspect-4/3 w-full object-cover transition duration-500 hover:scale-105"
         />
