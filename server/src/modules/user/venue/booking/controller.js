@@ -4,7 +4,7 @@ export async function getVenues(req, res) {
   const data = await service.getVenues();
   res.status(200).json({
     success: true,
-    message: 'Live venues fetched successfully',
+    message: 'All venues fetched successfully',
     data,
   });
 }

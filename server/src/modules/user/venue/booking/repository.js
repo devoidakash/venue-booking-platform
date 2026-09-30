@@ -15,35 +15,19 @@ export async function getVenues() {
 export async function getVenue(venueId) {
   const result = await pool.query(
     `
-  SELECT
-  v.id,
-  v.name,
-  v.description,
-  v.category,
-  v.district,
-  v.state,
-  v.pincode,
-  ST_Y(v.geo_loc::geometry) AS latitude,
-  ST_X(v.geo_loc::geometry) AS longitude,
-  v.booking_type,
-  v.opening_time,
-  v.closing_time,
-  v.images,
-  vp.starting_price
-
-FROM venues v
-
-JOIN (
-  SELECT
-    venue_id,
-    MIN(price) AS starting_price
-  FROM venue_pricing
-  GROUP BY venue_id
-) vp ON vp.venue_id = v.id
-
-WHERE v.id = $1 AND v.status = 'live'`,
+    SELECT
+      v.id, v.name, v.description, v.category,
+      v.district, v.state, v.pincode,
+      ST_Y(v.geo_loc::geometry) AS latitude,
+      ST_X(v.geo_loc::geometry) AS longitude,
+      v.booking_type, v.opening_time, v.closing_time, v.images,
+      (SELECT MIN(price) FROM venue_pricing WHERE venue_id = v.id) AS starting_price
+    FROM venues v
+    WHERE v.id = $1 AND v.status = 'live'
+    `,
     [venueId]
   );
+
   return toCamelCase(result.rows[0]);
 }
 

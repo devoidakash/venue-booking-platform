@@ -29,14 +29,14 @@ export async function getVenues() {
 }
 
 export async function getVenue(venueId) {
-  const data = await repository.getVenue(venueId);
-  const { images, ...venue } = data;
+  const venue = await repository.getVenue(venueId);
+  const { images, ...data } = venue;
 
-  const imagesUrl = await getFromCloudinary(images);
+  const imagesKey = await getFromCloudinary(images);
 
   return {
-    ...venue,
-    images: imagesUrl,
+    ...data,
+    images: imagesKey,
   };
 }
 
