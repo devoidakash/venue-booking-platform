@@ -24,10 +24,10 @@ router.get(
   controller.getVenuePricing
 );
 
+router.use(authenticateToken, ensureAccountActive);
+
 router.post(
   '/venues/:venueId/bookings',
-  authenticateToken,
-  ensureAccountActive,
   validateSchema(schema.venueId, 'params'),
   validateSchema(schema.createBooking),
   controller.createBooking
@@ -35,26 +35,17 @@ router.post(
 
 router.post(
   '/venues/bookings/:bookingId/payment',
-  authenticateToken,
-  ensureAccountActive,
   validateSchema(schema.bookingId, 'params'),
   controller.createPaymentOrder
 );
 
 router.post(
   '/bookings/:bookingId/payment/verify',
-  authenticateToken,
-  ensureAccountActive,
   validateSchema(schema.bookingId, 'params'),
   validateSchema(schema.verifyPayment),
   controller.verifyPayment
 );
 
-router.get(
-  '/bookings/history',
-  authenticateToken,
-  ensureAccountActive,
-  controller.getBookingHistory
-);
+router.get('/bookings/history', controller.getBookingHistory);
 
 export default router;
