@@ -41,19 +41,13 @@ export async function getVenue(venueId) {
 }
 
 export async function getVenuePricing(venueId) {
-  const { bookingType } = await repository.getVenueBookingType(venueId);
-
-  if (!bookingType) {
-    throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);
-  }
-
   const pricing = await repository.getVenuePricing(venueId);
 
-  if (!pricing.length) {
+  if (!pricing) {
     throw new ApiError(ERROR_CONFIG.VENUE_PRICING_NOT_FOUND);
   }
 
-  return { bookingType, pricing };
+  return pricing;
 }
 
 const toMinutes = (time) => {

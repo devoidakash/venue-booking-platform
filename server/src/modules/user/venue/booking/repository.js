@@ -31,24 +31,28 @@ export async function getVenue(venueId) {
   return toCamelCase(result.rows[0]);
 }
 
-export async function getVenueBookingType(venueId) {
-  const result = await pool.query(
-    `
-    SELECT booking_type FROM venues WHERE id = $1`,
-    [venueId]
-  );
-  return toCamelCase(result.rows[0]);
-}
-
 export async function getVenuePricing(venueId) {
-  const result = await pool.query(
+  const { rows } = await pool.query(
     `
-  SELECT v.id, v.opening_time, v.closing_time, vp.day_type, vp.duration_minutes, vp.price FROM venues v
-  JOIN venue_pricing vp ON vp.venue_id = v.id
-  WHERE v.id = $1 AND v.status = 'live'`,
+    SELECT v.id, v.opening_time, v.closing_time, v.booking_type,
+    COALESCE(
+    json_agg(
+    json_build_object(
+    'dayType', vp.day_type,
+    'durationMinutes', vp.duration_minutes,
+    'price', vp.price)
+    ), '[]'
+    ) AS pricing 
+    FROM venues v 
+    JOIN venue_pricing vp 
+    On v.id = vp.venue_id
+    WHERE v.id = $1
+    AND status = 'live'
+    GROUP BY v.id
+    `,
     [venueId]
   );
-  return result.rows.map((row) => toCamelCase(row));
+  return toCamelCase(rows[0]);
 }
 
 export async function getBookingPrice(data) {
