@@ -265,9 +265,7 @@ export default function VenuePricingPage({
   const open = isControlled ? openProp : internalOpen;
   const setOpen = isControlled ? onOpenChange : setInternalOpen;
 
-  const { mode, priceForDate, slotEntry } = usePricingLookup(
-    pricingData?.pricing,
-  );
+  const { mode, priceForDate } = usePricingLookup(pricingData?.pricing);
 
   const today = useMemo(() => {
     const t = new Date();
@@ -301,8 +299,6 @@ export default function VenuePricingPage({
 
   const canProceed =
     mode === "slot" ? !!(selectedDate && selectedSlot) : !!selectedDate;
-
-  const selectedSlotPricing = selectedDate ? slotEntry(selectedDate) : null;
 
   const finalPrice =
     mode === "slot"
@@ -366,8 +362,8 @@ export default function VenuePricingPage({
           {mode === "slot" && (
             <div className="sm:pl-6">
               <SlotPanel
-                openingTime={selectedSlotPricing?.openingTime}
-                closingTime={selectedSlotPricing?.closingTime}
+                openingTime={pricingData?.openingTime}
+                closingTime={pricingData?.closingTime}
                 date={selectedDate}
                 price={selectedDate ? priceForDate(selectedDate) : null}
                 selectedSlot={selectedSlot}

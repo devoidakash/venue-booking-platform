@@ -74,8 +74,16 @@ function SectionCard({ title, action, children, className = "" }) {
     <section
       className={`rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 ${className}`}
     >
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-base font-bold text-slate-900">{title}</h2>
+      <div className="flex items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="h-6 w-1 shrink-0 rounded-full bg-indigo-500"
+          />
+          <h2 className="min-w-0 text-lg font-bold leading-tight text-slate-900">
+            {title}
+          </h2>
+        </div>
         {action}
       </div>
       <div className="mt-5">{children}</div>
@@ -186,6 +194,7 @@ export default function VenueManagementPage() {
         venueData
           ? {
               ...venueData,
+              pricing: data?.pricing ?? venueData.pricing ?? [],
               coverImage: withCacheBust(venueData.coverImage),
             }
           : venueData,
@@ -199,14 +208,17 @@ export default function VenueManagementPage() {
       );
       const bookingType = venueData?.bookingType ?? "whole_day";
       setPricingBookingType(bookingType);
+      const savedPricing = new Map(
+        (data?.pricing ?? venueData?.pricing ?? []).map((item) => [
+          item.dayType ?? item.day_type,
+          item,
+        ]),
+      );
       setPricingRows(
-        venueData?.pricing?.length
-          ? venueData.pricing.map((item) => ({
-              day_type: item.dayType ?? item.day_type,
-              duration_minutes: bookingType === "time_slot" ? 60 : null,
-              price: item.price ?? "",
-            }))
-          : defaultPricingRows(bookingType),
+        defaultPricingRows(bookingType).map((row) => ({
+          ...row,
+          price: savedPricing.get(row.day_type)?.price ?? "",
+        })),
       );
     } catch (err) {
       setError(err?.response?.data?.message || "Could not load venue details.");
@@ -466,11 +478,19 @@ export default function VenueManagementPage() {
   }
 
   async function savePricing() {
-    const pricing = pricingRows.map((row) => ({
+    const configuredRows = pricingRows.filter(
+      (row) => String(row.price).trim() !== "",
+    );
+    const pricing = configuredRows.map((row) => ({
       day_type: row.day_type,
       price: Number(row.price),
       ...(pricingBookingType === "time_slot" ? { duration_minutes: 60 } : {}),
     }));
+
+    if (new Set(pricing.map((row) => row.day_type)).size !== 2) {
+      setPricingError("Enter prices for both weekdays and weekends.");
+      return;
+    }
 
     if (
       pricing.some(
@@ -480,7 +500,7 @@ export default function VenueManagementPage() {
           (pricingBookingType === "time_slot" && row.duration_minutes !== 60),
       )
     ) {
-      setPricingError("Enter a valid positive price and duration.");
+      setPricingError("Enter a valid positive price for each day type.");
       return;
     }
 
