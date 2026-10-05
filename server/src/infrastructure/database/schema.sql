@@ -286,3 +286,6 @@ CREATE TABLE IF NOT EXISTS payments (
   status payment_status NOT NULL DEFAULT 'pending',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+CREATE UNIQUE INDEX one_pending_payment_per_booking
+ON payments (booking_id)
+WHERE status = 'pending';

@@ -95,20 +95,18 @@ export async function createBooking(userId, venueId, data) {
 }
 
 export async function createPaymentOrder(userId, bookingId) {
-  try {
-    const booking = await repository.getPaymentPrice(userId, bookingId);
-
+  return withTransaction(pool, async (client) => {
+    const booking = await repository.findBooking(client, userId, bookingId);
     if (!booking) {
       throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
     }
 
-    const existingOrder = await repository.fetchExistingOrderId(booking.id);
-
+    const existingOrder = await repository.findExistingOrder(client, bookingId);
     if (existingOrder) {
       return {
         paymentId: existingOrder.id,
         orderId: existingOrder.gatewayOrderId,
-        amount: existingOrder.totalAmount * 100,
+        amount: existingOrder.amount * 100,
         currency: 'INR',
         keyId: process.env.RAZORPAY_KEY_ID,
       };
@@ -120,26 +118,20 @@ export async function createPaymentOrder(userId, bookingId) {
       receipt: `booking_${bookingId}`,
     });
 
-    const paymentId = await repository.insertOrderId({
+    const payment = await repository.insertIntoPayments(client, {
       bookingId: booking.id,
       orderId: order.id,
       totalAmount: booking.totalAmount,
     });
 
     return {
-      paymentId,
+      paymentId: payment.id,
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
       keyId: process.env.RAZORPAY_KEY_ID,
     };
-  } catch (err) {
-    console.log(err);
-    if (err instanceof ApiError) {
-      throw err;
-    }
-    throw new ApiError(ERROR_CONFIG.BOOKING_ORDER_CREATION_FAILED);
-  }
+  });
 }
 
 export async function verifyPayment(user, bookingId, data) {
@@ -210,3 +202,4 @@ export async function verifyPayment(user, bookingId, data) {
 export async function getBookingHistory(userId) {
   return await repository.fetchBookingsHistory(userId);
 }
+booking;

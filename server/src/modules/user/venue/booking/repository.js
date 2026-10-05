@@ -138,37 +138,45 @@ export async function insertIntoBookings(client, userId, venueId, data) {
   return result.rows[0];
 }
 
-export async function getPaymentPrice(userId, bookingId) {
-  const result = await pool.query(
+// createPaymentOrder function
+
+export async function findBooking(client, userId, bookingId) {
+  const result = await client.query(
     `
-  SELECT id, total_amount FROM bookings WHERE id = $1 AND user_id = $2 AND status = 'pending_payment'`,
+  SELECT id, total_amount 
+  FROM bookings
+  WHERE id = $1
+  AND user_id = $2
+  AND status = 'pending_payment'
+  FOR UPDATE`,
     [bookingId, userId]
   );
   return toCamelCase(result.rows[0]);
 }
 
-export async function fetchExistingOrderId(bookingId) {
-  const result = await pool.query(
+export async function findExistingOrder(client, bookingId) {
+  const result = await client.query(
     `
     SELECT id, gateway_order_id, amount
     FROM payments
     WHERE booking_id = $1
+    AND status = 'pending'
     `,
     [bookingId]
   );
   return toCamelCase(result.rows[0]);
 }
 
-export async function insertOrderId(data) {
-  const result = await pool.query(
+export async function insertIntoPayments(client, data) {
+  const result = await client.query(
     `
-  INSERT INTO payments (booking_id, gateway, gateway_order_id, amount
-)
-VALUES (
-  $1, 'razorpay', $2, $3) RETURNING id `,
+  INSERT INTO payments
+  (booking_id, gateway, gateway_order_id, amount)
+  VALUES ($1, 'razorpay', $2, $3) 
+  RETURNING id `,
     [data.bookingId, data.orderId, data.totalAmount]
   );
-  return result.rows[0]?.id;
+  return result.rows[0];
 }
 
 export async function getPaymentForVerification(userId, bookingId) {
@@ -301,10 +309,11 @@ export async function fetchVenueNameAndAddress(venueId) {
 }
 
 export async function expireStaleBookings() {
-  await pool.query(`
+  const result = await pool.query(`
     UPDATE bookings
     SET status = 'expired'
     WHERE status = 'pending_payment'
-    AND created_at < NOW() - INTERVAL '15 minutes'
+    AND created_at < NOW() - INTERVAL '10 minutes'
   `);
+  return result.rowCount;
 }
