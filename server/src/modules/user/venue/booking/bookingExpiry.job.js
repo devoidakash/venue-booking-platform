@@ -2,9 +2,10 @@ import cron from 'node-cron';
 
 import { expireStaleBookings } from './repository.js';
 
-cron.schedule('*/15 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
   try {
-    await expireStaleBookings;
+    const expiredCount = await expireStaleBookings();
+    console.log(`Expired ${expiredCount} stale bookings`);
   } catch (err) {
     console.error('Failed to expire stale bookings:', err);
   }

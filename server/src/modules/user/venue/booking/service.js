@@ -202,4 +202,3 @@ export async function verifyPayment(user, bookingId, data) {
 export async function getBookingHistory(userId) {
   return await repository.fetchBookingsHistory(userId);
 }
-booking;
