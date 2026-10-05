@@ -70,7 +70,7 @@ export async function updateVenueHours(req, res) {
 }
 
 export async function updateVenueCapacity(req, res) {
-  const data = await service.updateVenueCapacity(
+  await service.updateVenueCapacity(
     req.vendor.id,
     req.params.venueId,
     req.body.capacity
@@ -79,7 +79,6 @@ export async function updateVenueCapacity(req, res) {
   res.status(200).json({
     success: true,
     message: 'Venue capacity updated successfully',
-    data: { capacity: data },
   });
 }
 

@@ -121,12 +121,26 @@ export const capacity = z.object({
 export const booking = z.discriminatedUnion('bookingType', [
   z.object({
     bookingType: z.literal('whole_day'),
-    pricing: z.array(wholeDayPricingSchema).min(1),
+    pricing: z
+      .array(wholeDayPricingSchema)
+      .refine(
+        (pricing) =>
+          pricing.length === 2 &&
+          new Set(pricing.map((item) => item.day_type)).size === 2,
+        { message: 'Weekday and weekend prices are required' }
+      ),
   }),
 
   z.object({
     bookingType: z.literal('time_slot'),
-    pricing: z.array(timeSlotPricingSchema).min(1),
+    pricing: z
+      .array(timeSlotPricingSchema)
+      .refine(
+        (pricing) =>
+          pricing.length === 2 &&
+          new Set(pricing.map((item) => item.day_type)).size === 2,
+        { message: 'Weekday and weekend prices are required' }
+      ),
   }),
 ]);
 

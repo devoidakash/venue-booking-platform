@@ -55,119 +55,87 @@ export async function getVenuePricing(venueId) {
   return toCamelCase(rows[0]);
 }
 
-export async function getBookingPrice(data) {
-  const result = await pool.query(
-    `
-  SELECT price FROM venue_pricing WHERE venue_id = $1 AND day_type = $2`,
-    [data.venueId, data.dayType]
-  );
-  return result.rows[0]?.price ?? null;
-}
-
-export async function getExistingBooking(data) {
-  const result = await pool.query(
-    `
-  SELECT id, user_id, venue_id, booking_date, booking_type, quantity,
-  total_amount FROM bookings
-  WHERE user_id = $1 AND venue_id = $2 AND booking_date = $3
-  AND booking_type = $4 AND quantity = $5
-  AND start_time IS NOT DISTINCT FROM $6
-  AND end_time IS NOT DISTINCT FROM $7
-  AND total_amount = $8 AND end_time = $7 AND total_amount = $8 `,
-    [
-      data.userId,
-      data.venueId,
-      data.bookingDate,
-      data.bookingType,
-      data.quantity,
-      data.startTime,
-      data.endTime,
-      data.totalAmount,
-    ]
-  );
-  return toCamelCase(result.rows[0]);
-}
-
-export async function insertWholeDayBooking(data) {
-  const result = await pool.query(
-    `
-  INSERT INTO bookings (
-  user_id,
-  venue_id,
-  booking_date,
-  booking_type,
-  quantity,
-  total_amount
+export async function getVenueAvailability(client, venueId, data) {
+  const result = await client.query(
+    `WITH venue AS (
+  SELECT id, capacity
+  FROM venues
+  WHERE id = $1
+  FOR UPDATE
 )
-VALUES ($1, $2, $3, $4, $5, $6)
-RETURNING
-  id,
-  user_id,
-  venue_id,
-  booking_date,
-  booking_type,
-  quantity,
-  total_amount;
-`,
-    [
-      data.userId,
-      data.venueId,
-      data.bookingDate,
-      data.bookingType,
-      data.quantity,
-      data.totalAmount,
-    ]
+SELECT
+  v.capacity,
+  COALESCE((
+    SELECT SUM(b.quantity)
+    FROM bookings b
+    WHERE b.venue_id = v.id
+      AND b.booking_date = $2
+      AND b.booking_type = $3
+      AND b.status IN ('pending_payment', 'confirmed')
+      AND (
+        $3 = 'whole_day'
+        OR (
+          $3 = 'time_slot'
+          AND b.start_time = $4
+          AND b.end_time = $5
+        )
+      )
+  ), 0) AS booked
+FROM venue v;`,
+    [venueId, data.bookingDate, data.bookingType, data.startTime, data.endTime]
+  );
+
+  return toCamelCase(result.rows[0]);
+}
+
+export async function getVenuePricingByFilter(
+  client,
+  venueId,
+  bookingType,
+  dayType
+) {
+  const result = await client.query(
+    `
+    SELECT v.opening_time, v.closing_time, vp.price  
+    FROM venues v 
+    JOIN venue_pricing vp 
+    On v.id = vp.venue_id
+    WHERE v.id = $1
+    AND v.status = 'live'
+    AND v.booking_type = $2
+    AND vp.day_type = $3 
+    `,
+    [venueId, bookingType, dayType]
   );
   return toCamelCase(result.rows[0]);
 }
 
-export async function getVenueTiming(venueId) {
-  const result = await pool.query(
+export async function insertIntoBookings(client, userId, venueId, data) {
+  const result = await client.query(
     `
-    SELECT opening_time, closing_time
-    FROM venues WHERE id = $1`,
-    [venueId]
-  );
-  return result.rows[0] ? toCamelCase(result.rows[0]) : null;
-}
-
-export async function insertTimeSlotBooking(data) {
-  const result = await pool.query(
-    `
-INSERT INTO bookings (
-  user_id,
-  venue_id,
+  INSERT INTO bookings (user_id, venue_id, booking_date, booking_type,quantity, start_time, end_time, total_amount)
+  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+  RETURNING
+  id,
   booking_date,
   booking_type,
   quantity,
   start_time,
   end_time,
-  total_amount
-)
-VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING
-  id,
-  user_id,
-  venue_id,
-  booking_date,
-  booking_type,
-  quantity,
-  start_time,
-  end_time,
-  total_amount;
-`,
+  total_amount,
+  status`,
     [
-      data.userId,
-      data.venueId,
+      userId,
+      venueId,
       data.bookingDate,
       data.bookingType,
       data.quantity,
-      data.startTime,
-      data.endTime,
+      data.startTime ?? null,
+      data.endTime ?? null,
       data.totalAmount,
     ]
   );
-  return toCamelCase(result.rows[0]);
+  return result.rows[0];
 }
 
 export async function getPaymentPrice(userId, bookingId) {

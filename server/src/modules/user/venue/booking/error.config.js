@@ -4,6 +4,11 @@ export const ERROR_CONFIG = {
     message: 'Venue pricing not found',
     code: 'VENUE_PRICING_NOT_FOUND',
   },
+  VENUE_CAPACITY_NOT_FOUND: {
+    statusCode: 404,
+    message: 'Venue capacity not found',
+    code: 'VENUE_PRICING_NVENUE_CAPACITY_NOT_FOUNDOT_FOUND',
+  },
   VENUE_NOT_FOUND: {
     statusCode: 404,
     message: 'Venue not found',

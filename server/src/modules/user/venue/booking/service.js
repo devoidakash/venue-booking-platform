@@ -50,92 +50,48 @@ export async function getVenuePricing(venueId) {
   return pricing;
 }
 
-const toMinutes = (time) => {
-  const [hours, minutes] = time.split(':').map(Number);
-  return hours * 60 + minutes;
-};
-
 export async function createBooking(userId, venueId, data) {
   const day = data.bookingDate.getUTCDay();
-  const dayType = day == 0 || day == 6 ? 'weekend' : 'weekday';
+  const dayType = day === 0 || day === 6 ? 'weekend' : 'weekday';
 
-  try {
-    const price = await repository.getBookingPrice({ venueId, dayType });
+  return await withTransaction(pool, async (client) => {
+    const venue = await repository.getVenuePricingByFilter(
+      client,
+      venueId,
+      data.bookingType,
+      dayType
+    );
 
-    if (!price) {
-      throw new ApiError(ERROR_CONFIG.VENUE_PRICING_NOT_FOUND);
+    if (!venue) {
+      throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);
     }
 
-    if (data.bookingType === 'whole_day') {
-      const existingBooking = await repository.getExistingBooking({
-        userId,
-        venueId,
-        ...data,
-        startTime: null,
-        endTime: null,
-        totalAmount: price * data.quantity,
-      });
+    if (
+      data.bookingType === 'time_slot' &&
+      (data.startTime < venue.openingTime || data.endTime > venue.closingTime)
+    ) {
+      throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_TIME_INVALID);
+    }
 
-      if (existingBooking) return existingBooking;
+    const { capacity, booked } = await repository.getVenueAvailability(
+      client,
+      venueId,
+      data
+    );
 
-      return await repository.insertWholeDayBooking({
-        userId,
-        venueId,
-        ...data,
-        totalAmount: price * data.quantity,
+    if (capacity < booked + data.quantity) {
+      throw new ApiError({
+        statusCode: 400,
+        message: `You can book a maximum of ${capacity - booked} tickets`,
+        code: 'MAX_TICKET_LIMIT_REACHED',
       });
     }
 
-    if (data.bookingType === 'time_slot') {
-      const existingBooking = await repository.getExistingBooking({
-        userId,
-        venueId,
-        ...data,
-        totalAmount: price * data.quantity,
-      });
-
-      if (existingBooking) return existingBooking;
-
-      const timing = await repository.getVenueTiming(venueId);
-
-      if (!timing) {
-        throw new ApiError(ERROR_CONFIG.VENUE_NOT_FOUND);
-      }
-
-      if (
-        data.startTime < timing.openingTime ||
-        data.endTime > timing.closingTime
-      ) {
-        throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_TIME_INVALID);
-      }
-
-      const now = new Date();
-      const isToday =
-        data.bookingDate.getFullYear() === now.getFullYear() &&
-        data.bookingDate.getMonth() === now.getMonth() &&
-        data.bookingDate.getDate() === now.getDate();
-
-      if (isToday) {
-        const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-        if (toMinutes(data.startTime) < currentMinutes) {
-          throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_TIME_INVALID);
-        }
-      }
-
-      return await repository.insertTimeSlotBooking({
-        userId,
-        venueId,
-        ...data,
-        totalAmount: price * data.quantity,
-      });
-    }
-  } catch (err) {
-    if (err instanceof ApiError) {
-      throw err;
-    }
-    throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_FAILED);
-  }
+    return repository.insertIntoBookings(client, userId, venueId, {
+      ...data,
+      totalAmount: data.quantity * venue.price,
+    });
+  });
 }
 
 export async function createPaymentOrder(userId, bookingId) {
