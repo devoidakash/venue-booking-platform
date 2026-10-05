@@ -23,6 +23,7 @@ import {
   getVenue,
   verifyPayment,
 } from "@/api/user.api";
+import { loadRazorpay } from "@/lib/razorpay";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import VenuePricingPage from "@/pages/user/VenuePricingPage";
@@ -374,6 +375,10 @@ export default function VenueBookingPage({ onBook }) {
     try {
       const booking = await createBooking(venueId, payload);
       const paymentOrder = await createPaymentOrder(booking.id);
+
+      if (!(await loadRazorpay())) {
+        throw new Error("Could not load payment checkout. Please try again.");
+      }
 
       if (typeof window.Razorpay !== "function") {
         throw new Error("Payment checkout is unavailable. Please try again.");
