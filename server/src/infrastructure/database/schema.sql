@@ -93,7 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_vendor_status
   ON vendor_applications (status);
 
 
-CREATE TYPE venue_category as ENUM('waterpark', 'amusement_park', 'gaming_zone', 'playzone', 'racing_zone', 'trampoline_park');
+CREATE TYPE venue_category as ENUM('waterpark', 'amusement_park', 'gaming_zone', 'playzone', 'racing_zone', 'trampoline_park', 'truf');
 
 CREATE TYPE application_status AS ENUM('pending', 'approved', 'rejected');
 

@@ -3,9 +3,11 @@ import { z } from 'zod';
 const ALLOWED_CATEGORY = [
   'waterpark',
   'amusement_park',
+  'trampoline_park',
   'playzone',
   'racing_zone',
   'gaming_zone',
+  'turf',
 ];
 const ALLOWED_STATES = [
   'Andhra Pradesh',
@@ -26,7 +28,7 @@ const schema = z.object({
 
   category: z.enum(ALLOWED_CATEGORY, {
     message:
-      'Allowed category are waterpark, amusement_park, racing_zone, gaming_zone or playzone',
+      'Allowed category are waterpark, amusement_park, trampoline_park, racing_zone, gaming_zone, turf or playzone',
   }),
 
   address: z.string().trim().min(5, 'Full address is required'),
