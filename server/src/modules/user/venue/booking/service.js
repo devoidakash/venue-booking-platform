@@ -1,9 +1,10 @@
+import crypto from 'node:crypto';
+
 import storageKeys from '../../../../config/storageKeys.js';
 import pool from '../../../../infrastructure/database/db.js';
 import razorpay from '../../../../infrastructure/razorpay/razorpay.js';
 import ApiError from '../../../../utils/api.error.js';
 import { getFromCloudinary } from '../../../../utils/cloudinary.storage.js';
-import { verifyRazorpaySignature } from '../../../../utils/razorpay.js';
 import { withTransaction } from '../../../../utils/transaction.js';
 import {
   sendBookingConfirmationEmail,
@@ -240,6 +241,22 @@ export async function verifyPayment(user, bookingId, data) {
     });
   }
   return response;
+}
+
+function verifyRazorpaySignature(orderId, paymentId, signature) {
+  if (typeof paymentId !== 'string' || typeof signature !== 'string')
+    return false;
+
+  const expected = crypto
+    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+    .update(`${orderId}|${paymentId}`)
+    .digest('hex');
+
+  const a = Buffer.from(expected);
+  const b = Buffer.from(signature);
+  if (a.length !== b.length) return false;
+
+  return crypto.timingSafeEqual(a, b);
 }
 
 export async function getBookingHistory(userId) {
