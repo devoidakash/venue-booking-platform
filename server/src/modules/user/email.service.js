@@ -2,6 +2,7 @@ import { ERROR_CONFIG } from '../../config/error.config.js';
 import resend from '../../infrastructure/email/email.js';
 import { generateOtpTemplate } from '../../infrastructure/email/templates/otp.template.js';
 import { generateBookingConfirmationTemplate } from '../../infrastructure/email/templates/venue/booking.confirmation.js';
+import { generateRefundPendingTemplate } from '../../infrastructure/email/templates/venue/refund.started.js';
 import ApiError from '../../utils/api.error.js';
 import { generateBookingQR } from '../../utils/generateqr.js';
 
@@ -36,5 +37,14 @@ export async function sendBookingConfirmationEmail({ email, bookingData }) {
         contentId: 'booking-qr',
       },
     ],
+  });
+}
+
+export async function sendRefundStartedEmail({ email, bookingData }) {
+  return resend.emails.send({
+    from: FROM,
+    to: email,
+    subject: `Your refund for Venuz booking ${bookingData.bookingId} has started`,
+    html: generateRefundPendingTemplate({ bookingData }),
   });
 }

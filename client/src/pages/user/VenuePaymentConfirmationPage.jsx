@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { CheckCircle2, Mail, Ticket } from "lucide-react";
+import { CheckCircle2, CircleAlert, Clock, Mail, Ticket } from "lucide-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
 import {
@@ -30,17 +30,21 @@ export default function VenuePaymentConfirmationPage({
   const { bookingId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
-  const booking = bookingProp ?? location.state?.booking;
+  const result = bookingProp ?? location.state?.booking;
+  const booking = result?.details ?? result;
+  const refundPending = result?.status === "refund_pending";
+  const processing = result?.status === "processing";
+  const pending = refundPending || processing;
   const close = useMemo(
     () => onClose ?? (() => navigate(-1)),
     [navigate, onClose],
   );
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || pending) return undefined;
     const redirectTimer = window.setTimeout(close, 3000);
     return () => window.clearTimeout(redirectTimer);
-  }, [close, open]);
+  }, [close, open, pending]);
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && close()}>
@@ -49,52 +53,80 @@ export default function VenuePaymentConfirmationPage({
         className="max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl p-6 sm:max-w-lg sm:p-8"
       >
         <div className="text-center">
-          <div className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-600">
-            <CheckCircle2 className="h-8 w-8" />
+          <div
+            className={`mx-auto grid h-14 w-14 place-items-center rounded-full ${refundPending ? "bg-amber-50 text-amber-700" : processing ? "bg-sky-50 text-sky-700" : "bg-emerald-50 text-emerald-600"}`}
+          >
+            {processing ? (
+              <Clock className="h-8 w-8" />
+            ) : refundPending ? (
+              <CircleAlert className="h-8 w-8" />
+            ) : (
+              <CheckCircle2 className="h-8 w-8" />
+            )}
           </div>
           <DialogTitle className="mt-5 text-2xl font-semibold text-neutral-900">
-            Booking confirmed
+            {processing
+              ? "Payment processing"
+              : refundPending
+                ? "Refund processing"
+                : "Booking confirmed"}
           </DialogTitle>
           <DialogDescription className="mt-2 text-sm text-neutral-500">
-            Your payment was successful and your booking is confirmed.
+            {processing
+              ? (result?.message ??
+                "Your payment is being processed, we'll confirm shortly.")
+              : refundPending
+                ? (result?.message ??
+                  "Your booking expired before payment confirmation. We are processing a refund for your payment. Please book again.")
+                : "Your payment was successful and your booking is confirmed."}
           </DialogDescription>
 
-          <div className="mt-6 grid gap-3 text-left sm:grid-cols-2">
-            <div className="rounded-xl bg-neutral-50 p-4">
-              <p className="text-xs text-neutral-500">Booking ID</p>
-              <p className="mt-1 break-all text-sm font-medium text-neutral-900">
-                {booking?.id ?? bookingId}
-              </p>
+          {!processing && (
+            <div className="mt-6 grid gap-3 text-left sm:grid-cols-2">
+              <div className="rounded-xl bg-neutral-50 p-4">
+                <p className="text-xs text-neutral-500">Booking ID</p>
+                <p className="mt-1 break-all text-sm font-medium text-neutral-900">
+                  {booking?.bookingId ?? booking?.id ?? bookingId}
+                </p>
+              </div>
+              <div className="rounded-xl bg-neutral-50 p-4">
+                <p className="text-xs text-neutral-500">Amount paid</p>
+                <p className="mt-1 text-sm font-medium text-neutral-900">
+                  {formatCurrency(booking?.totalAmount)}
+                </p>
+              </div>
+              {!refundPending && (
+                <>
+                  <div className="rounded-xl bg-neutral-50 p-4">
+                    <p className="text-xs text-neutral-500">Visit date</p>
+                    <p className="mt-1 text-sm font-medium text-neutral-900">
+                      {formatDate(booking?.bookingDate)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-neutral-50 p-4">
+                    <p className="text-xs text-neutral-500">Tickets</p>
+                    <p className="mt-1 flex items-center gap-2 text-sm font-medium text-neutral-900">
+                      <Ticket className="h-4 w-4 text-violet-600" />
+                      {booking?.quantity ?? "-"}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
-            <div className="rounded-xl bg-neutral-50 p-4">
-              <p className="text-xs text-neutral-500">Visit date</p>
-              <p className="mt-1 text-sm font-medium text-neutral-900">
-                {formatDate(booking?.bookingDate)}
-              </p>
-            </div>
-            <div className="rounded-xl bg-neutral-50 p-4">
-              <p className="text-xs text-neutral-500">Tickets</p>
-              <p className="mt-1 flex items-center gap-2 text-sm font-medium text-neutral-900">
-                <Ticket className="h-4 w-4 text-violet-600" />
-                {booking?.quantity ?? "-"}
-              </p>
-            </div>
-            <div className="rounded-xl bg-neutral-50 p-4">
-              <p className="text-xs text-neutral-500">Amount paid</p>
-              <p className="mt-1 text-sm font-medium text-neutral-900">
-                {formatCurrency(booking?.totalAmount)}
-              </p>
-            </div>
-          </div>
+          )}
 
-          <div className="mt-6 flex items-start gap-3 rounded-xl bg-violet-50 p-4 text-left text-sm text-violet-900">
-            <Mail className="mt-0.5 h-5 w-5 shrink-0 text-violet-600" />
-            <p>Your tickets will be sent to your registered email address.</p>
-          </div>
+          {!pending && (
+            <div className="mt-6 flex items-start gap-3 rounded-xl bg-violet-50 p-4 text-left text-sm text-violet-900">
+              <Mail className="mt-0.5 h-5 w-5 shrink-0 text-violet-600" />
+              <p>Your tickets will be sent to your registered email address.</p>
+            </div>
+          )}
 
-          <p className="mt-6 text-xs text-neutral-400">
-            Closing in 3 seconds...
-          </p>
+          {!refundPending && (
+            <p className="mt-6 text-xs text-neutral-400">
+              Closing in 3 seconds...
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

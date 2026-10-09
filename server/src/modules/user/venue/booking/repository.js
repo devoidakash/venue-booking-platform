@@ -1,5 +1,6 @@
 import pool from '../../../../infrastructure/database/db.js';
 import toCamelCase from '../../../../utils/camelcase.conversion.js';
+import { bookingId } from './schems.js';
 
 export async function getVenues() {
   const result = await pool.query(`
@@ -179,96 +180,107 @@ export async function insertIntoPayments(client, data) {
   return result.rows[0];
 }
 
-export async function getPaymentForVerification(userId, bookingId) {
-  const result = await pool.query(
+// verifyPaymnet functions
+export async function getBookingStatus(client, bookingId, userId) {
+  const result = await client.query(
     `
-    SELECT
-      p.id,
-      p.gateway_order_id,
-      p.status
-    FROM payments p
-    JOIN bookings b ON b.id = p.booking_id
-    WHERE p.booking_id = $1
-      AND b.user_id = $2
+    SELECT id, status
+    FROM bookings
+    WHERE id = $1
+      AND user_id = $2
+    FOR UPDATE
     `,
     [bookingId, userId]
   );
-
   return toCamelCase(result.rows[0]);
 }
 
-export async function markPaymentFailed(paymentId) {
-  await client.query(
-    `
-    UPDATE payments
-    SET
-    status = 'failed'
-    WHERE id = $1
-    `,
-    [paymentId]
-  );
-}
-
-export async function markPaymentPaid(client, paymentId, paymentIdFromGateway) {
+export async function getPaymentStatus(client, bookingId) {
   const result = await client.query(
     `
-    UPDATE payments
-    SET
-      gateway_payment_id = $1,
-      status = 'paid'
-    WHERE id = $2
-    RETURNING id
-    `,
-    [paymentIdFromGateway, paymentId]
-  );
-
-  return result.rows[0].id;
-}
-
-export async function confirmBooking(client, bookingId) {
-  const result = await client.query(
-    `
-    UPDATE bookings as b
-    SET status = 'confirmed'
-    FROM users AS u, venues AS v
-    WHERE b.id = $1
-      AND b.user_id = u.id
-      AND b.venue_id = v.id
-    RETURNING b.id, b.user_id, b.venue_id, b.booking_date, b.booking_type, b.quantity, b.start_time, b.end_time, b.total_amount, u.email AS user_email, v.name AS venue_name, v.address AS venue_address
+    SELECT id, gateway_order_id, status
+    FROM payments
+    WHERE booking_id = $1
+    FOR UPDATE
     `,
     [bookingId]
   );
-
   return toCamelCase(result.rows[0]);
 }
 
-export async function fetchBookingDetails(userId, bookingId) {
-  const result = await pool.query(
+export async function fetchBookingDetails(client, bookingId, userId) {
+  const result = await client.query(
     `
     SELECT
-      b.id,
-      b.user_id,
+      b.id as booking_id,
       b.venue_id,
+      u.email AS user_email,
+      v.name AS venue_name,
+      CONCAT_WS(', ', v.address, v.district, v.state, v.pincode) AS venue_address,
       b.booking_date,
       b.booking_type,
       b.quantity,
       b.start_time,
       b.end_time,
       b.total_amount,
-      u.email AS user_email,
-      v.name AS venue_name,
-      v.address AS venue_address
-    FROM bookings AS b
-    JOIN users AS u ON b.user_id = u.id
-    JOIN venues AS v ON b.venue_id = v.id
+      b.status AS booking_status,
+      p.id as payment_id,
+      p.gateway_order_id,
+      p.gateway_payment_id,
+      p.status AS payment_status
+    FROM bookings b
+    JOIN payments p
+    ON p.booking_id = b.id
+    JOIN users u ON u.id = b.user_id
+    JOIN venues v ON v.id = b.venue_id
     WHERE b.id = $1
-      AND b.user_id = $2
-      AND b.status = 'confirmed'
+    AND b.user_id = $2
     `,
     [bookingId, userId]
   );
-
   return toCamelCase(result.rows[0]);
+}
+
+export async function confirmBookingAndPayment(
+  client,
+  paymentId,
+  gatewayPaymentId
+) {
+  await client.query(
+    `
+    WITH updated_payment AS (
+      UPDATE payments
+      SET gateway_payment_id = $1,
+          status = 'paid'
+      WHERE id = $2
+        AND status = 'pending'
+      RETURNING booking_id
+    )
+    UPDATE bookings
+    SET status = 'confirmed'
+    WHERE id = (SELECT booking_id FROM updated_payment)
+      AND status = 'pending_payment'
+    `,
+    [gatewayPaymentId, paymentId]
+  );
+}
+
+export async function markRefundPending(
+  client,
+  paymentId,
+  paymentIdFromGateway
+) {
+  await client.query(
+    `
+    UPDATE payments
+    SET
+      gateway_payment_id = $1,
+      status = 'refund_pending'
+    WHERE id = $2
+      AND status = 'expired'
+    `,
+    [paymentIdFromGateway, paymentId]
+  );
 }
 
 export async function fetchBookingsHistory(userId) {

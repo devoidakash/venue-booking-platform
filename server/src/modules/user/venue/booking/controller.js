@@ -62,7 +62,12 @@ export async function verifyPayment(req, res) {
   );
   res.status(200).json({
     success: true,
-    message: 'Payment verified successfully',
+    message:
+      data.status === 'refund_pending'
+        ? 'Your payment requires a refund due to the booking expiry. We’ll process it shortly.'
+        : data.status === 'processing'
+          ? 'Your payment is still being processed. We’ll update your booking once it’s confirmed.'
+          : 'Payment verified successfully.',
     data,
   });
 }

@@ -1,12 +1,14 @@
-import crypto from 'crypto';
-
 import storageKeys from '../../../../config/storageKeys.js';
 import pool from '../../../../infrastructure/database/db.js';
 import razorpay from '../../../../infrastructure/razorpay/razorpay.js';
 import ApiError from '../../../../utils/api.error.js';
 import { getFromCloudinary } from '../../../../utils/cloudinary.storage.js';
+import { verifyRazorpaySignature } from '../../../../utils/razorpay.js';
 import { withTransaction } from '../../../../utils/transaction.js';
-import { sendBookingConfirmationEmail } from '../../email.service.js';
+import {
+  sendBookingConfirmationEmail,
+  sendRefundStartedEmail,
+} from '../../email.service.js';
 import * as repository from '../booking/repository.js';
 import { ERROR_CONFIG } from './error.config.js';
 
@@ -135,68 +137,109 @@ export async function createPaymentOrder(userId, bookingId) {
 }
 
 export async function verifyPayment(user, bookingId, data) {
-  try {
-    const payment = await repository.getPaymentForVerification(
-      user.id,
-      bookingId
+  const verifiedPayment = await razorpay.payments.fetch(data.razorpayPaymentId);
+
+  if (!['authorized', 'captured'].includes(verifiedPayment.status)) {
+    throw new ApiError(ERROR_CONFIG.PAYMENT_NOT_CAPTURED);
+  }
+
+  const result = await withTransaction(pool, async (client) => {
+    const booking = await repository.getBookingStatus(
+      client,
+      bookingId,
+      user.id
     );
+    if (!booking) throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
 
-    if (!payment) {
-      throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
+    const payment = await repository.getPaymentStatus(client, bookingId);
+    if (!payment) throw new ApiError(ERROR_CONFIG.VENUE_BOOKING_NOT_FOUND);
+
+    if (booking.status === 'confirmed' && payment.status === 'paid') {
+      const details = await repository.fetchBookingDetails(
+        client,
+        bookingId,
+        user.id
+      );
+      return { status: 'confirmed', details };
     }
 
-    if (payment.status === 'failed') {
-      throw new ApiError(ERROR_CONFIG.PAYMENT_NOT_CAPTURED);
-    }
-
-    if (payment.status === 'paid') {
-      return await repository.fetchBookingDetails(user.id, bookingId);
+    if (
+      booking.status === 'expired' &&
+      ['refund_pending', 'refunded'].includes(payment.status)
+    ) {
+      const details = await repository.fetchBookingDetails(
+        client,
+        bookingId,
+        user.id
+      );
+      return { status: payment.status, details };
     }
 
     if (payment.gatewayOrderId !== data.razorpayOrderId) {
       throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
     }
 
-    const body = `${payment.gatewayOrderId}|${data.razorpayPaymentId}`;
-
-    const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(body)
-      .digest('hex');
-
-    if (expectedSignature !== data.razorpaySignature) {
-      throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
+    if (
+      !verifyRazorpaySignature(
+        payment.gatewayOrderId,
+        data.razorpayPaymentId,
+        data.razorpaySignature
+      )
+    ) {
+      throw new ApiError(ERROR_CONFIG.INVALID_RAZORPAY_SIGNATURE);
     }
 
-    const verifiedPayment = await razorpay.payments.fetch(
-      data.razorpayPaymentId
-    );
-
-    if (verifiedPayment.status !== 'captured') {
-      await repository.markPaymentFailed(payment.id);
-      throw new ApiError(ERROR_CONFIG.PAYMENT_NOT_CAPTURED);
+    if (verifiedPayment.status === 'authorized') {
+      return { status: 'processing' };
     }
 
-    const bookingData = await withTransaction(pool, async (client) => {
-      await repository.markPaymentPaid(
+    if (booking.status === 'pending_payment' && payment.status === 'pending') {
+      await repository.confirmBookingAndPayment(
         client,
         payment.id,
         data.razorpayPaymentId
       );
-      return await repository.confirmBooking(client, bookingId);
-    });
-    await sendBookingConfirmationEmail({
-      email: user.email,
-      bookingData,
-    });
-    return bookingData;
-  } catch (err) {
-    if (err instanceof ApiError) {
-      throw err;
+      const details = await repository.fetchBookingDetails(
+        client,
+        bookingId,
+        user.id
+      );
+      return { status: 'confirmed', details, justConfirmed: true };
     }
-    console.log(err);
+
+    if (booking.status === 'expired' && payment.status === 'expired') {
+      await repository.markRefundPending(
+        client,
+        payment.id,
+        data.razorpayPaymentId
+      );
+      const details = await repository.fetchBookingDetails(
+        client,
+        bookingId,
+        user.id
+      );
+      return { status: 'refund_pending', details };
+    }
+  });
+
+  if (!result) {
     throw new ApiError(ERROR_CONFIG.PAYMENT_VERIFICATION_FAILED);
   }
+
+  const { justConfirmed, ...response } = result;
+  if (justConfirmed) {
+    await sendBookingConfirmationEmail({
+      email: result.details.userEmail,
+      bookingData: { ...result.details, id: result.details.bookingId },
+    });
+  }
+  if (response.status === 'refund_pending') {
+    await sendRefundStartedEmail({
+      email: response.details.userEmail,
+      bookingData: response.details,
+    });
+  }
+  return response;
 }
 
 export async function getBookingHistory(userId) {

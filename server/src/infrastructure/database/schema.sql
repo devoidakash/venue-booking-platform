@@ -236,9 +236,9 @@ WHERE status = 'pending';
 CREATE TYPE booking_status AS ENUM (
   'pending_payment',
   'confirmed',
-  'payment_failed',
-  'cancelled',
   'expired'
+  -- 'payment_failed',
+  -- 'cancelled',
 );
 
 CREATE TABLE IF NOT EXISTS bookings (
@@ -273,7 +273,9 @@ CREATE TABLE IF NOT EXISTS bookings (
 CREATE TYPE payment_status AS ENUM (
   'pending',
   'paid',
-  'failed'
+  'expired',
+  'refund_pending',
+  'refunded'
 );
 
 CREATE TABLE IF NOT EXISTS payments (
