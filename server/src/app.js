@@ -16,6 +16,7 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
 );
+
 app.post(
   '/api/webhooks/razorpay',
   express.raw({ type: 'application/json' }),

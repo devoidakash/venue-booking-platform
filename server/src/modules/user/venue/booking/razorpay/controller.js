@@ -5,19 +5,26 @@ import * as service from './service.js';
 export async function razorpayWebhook(req, res) {
   try {
     const signature = req.headers['x-razorpay-signature'];
-
     if (!signature) {
       return res
         .status(400)
         .json({ received: false, message: 'Missing signature' });
     }
 
-    const expectedSignature = crypto
+    if (!Buffer.isBuffer(req.body)) {
+      return res
+        .status(400)
+        .json({ received: false, message: 'Invalid request body' });
+    }
+
+    const expected = crypto
       .createHmac('sha256', process.env.RAZORPAY_WEBHOOK_SECRET)
       .update(req.body)
       .digest('hex');
 
-    if (expectedSignature !== signature) {
+    const a = Buffer.from(expected);
+    const b = Buffer.from(signature);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
       return res
         .status(400)
         .json({ received: false, message: 'Invalid signature' });
@@ -25,16 +32,16 @@ export async function razorpayWebhook(req, res) {
 
     const event = JSON.parse(req.body.toString('utf8'));
 
-    switch (event.event) {
-      case 'payment.captured':
-        await service.paymentCaptured(event.payload.payment.entity);
-        break;
-
-      case 'payment.failed':
-        await service.paymentFailed(event.payload.payment.entity);
-        break;
+    if (event.event !== 'payment.captured') {
+      return res.status(200).json({ received: true, ignored: true });
     }
 
+    const payment = event.payload?.payment?.entity;
+    if (!payment?.id || !payment?.order_id) {
+      return res.status(400).json({ received: false });
+    }
+
+    await service.paymentCaptured(payment);
     return res.status(200).json({ received: true });
   } catch (err) {
     console.error('Webhook processing failed:', err);

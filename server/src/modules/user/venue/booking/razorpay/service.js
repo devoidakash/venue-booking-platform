@@ -1,50 +1,98 @@
 import pool from '../../../../../infrastructure/database/db.js';
 import { withTransaction } from '../../../../../utils/transaction.js';
-import { booking } from '../../../../vendor/venue/manage/schema.js';
-import { sendBookingConfirmationEmail } from '../../../email.service.js';
 import {
-  confirmBooking,
-  fetchVenueNameAndAddress,
-  markPaymentPaid,
+  sendBookingConfirmationEmail,
+  sendRefundStartedEmail,
+} from '../../../email.service.js';
+import {
+  confirmBookingAndPayment,
+  fetchBookingDetails,
+  markRefundPending,
 } from '../repository.js';
 import * as repository from './repository.js';
 
 export async function paymentCaptured(paymentEntity) {
-  const payment = await repository.fetchPaymentByGatewayOrderId(
-    paymentEntity.order_id
-  );
+  const found = await repository.findBookingIdByOrderId(paymentEntity.order_id);
+  if (!found) {
+    console.error('Webhook for unknown order:', paymentEntity.order_id);
+    return;
+  }
+  const { bookingId } = found;
 
-  if (!payment) {
+  if (!bookingId) {
     console.error('Webhook for unknown order:', paymentEntity.order_id);
     return;
   }
 
-  if (payment.status !== 'pending') {
-    return;
-  }
+  const result = await withTransaction(pool, async (client) => {
+    const booking = await repository.getBookingStatus(client, bookingId);
+    if (!booking) {
+      throw new Error(
+        `Webhook order has no booking: ${paymentEntity.order_id}`
+      );
+    }
 
-  const bookingData = await withTransaction(pool, async (client) => {
-    await markPaymentPaid(client, payment.id, paymentEntity.id);
-    return await confirmBooking(client, payment.bookingId);
+    const payment = await repository.getPaymentStatus(
+      client,
+      bookingId,
+      paymentEntity.order_id
+    );
+    if (!payment) {
+      throw new Error(
+        `Webhook order has no payment: ${paymentEntity.order_id}`
+      );
+    }
+
+    if (booking.status === 'confirmed' && payment.status === 'paid') {
+      return { status: 'already_confirmed' };
+    }
+
+    if (
+      booking.status === 'expired' &&
+      ['refund_pending', 'refunded'].includes(payment.status)
+    ) {
+      return { status: 'already_refunding' };
+    }
+
+    if (booking.status === 'pending_payment' && payment.status === 'pending') {
+      await confirmBookingAndPayment(client, payment.id, paymentEntity.id);
+      const details = await fetchBookingDetails(
+        client,
+        bookingId,
+        booking.userId
+      );
+      if (!details) {
+        throw new Error(`Booking details not found: ${bookingId}`);
+      }
+      return { status: 'confirmed', details };
+    }
+
+    if (booking.status === 'expired' && payment.status === 'expired') {
+      await markRefundPending(client, payment.id, paymentEntity.id);
+      const details = await fetchBookingDetails(
+        client,
+        bookingId,
+        booking.userId
+      );
+      if (!details) {
+        throw new Error(`Booking details not found: ${bookingId}`);
+      }
+      return { status: 'refund_pending', details };
+    }
   });
-  try {
+
+  if (result.status === 'confirmed') {
     await sendBookingConfirmationEmail({
-      email: bookingData.userEmail,
-      bookingData,
+      email: result.details.userEmail,
+      bookingData: { ...result.details, id: result.details.bookingId },
     });
-  } catch (err) {
-    console.error('Confirmation email failed:', err);
   }
-}
 
-export async function paymentFailed(paymentEntity) {
-  const payment = await repository.fetchPaymentByGatewayOrderId(
-    paymentEntity.order_id
-  );
-  if (!payment || payment.status !== 'pending') return;
-
-  return await repository.markBookingAndPaymentFailed(
-    payment.id,
-    payment.bookingId
-  );
+  if (result.status === 'refund_pending') {
+    await sendRefundStartedEmail({
+      email: result.details.userEmail,
+      bookingData: result.details,
+    });
+  }
+  return;
 }
