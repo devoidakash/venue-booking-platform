@@ -3,10 +3,12 @@ import { userRoutes } from "./user.routes";
 import { vendorRoutes } from "./vendor.routes";
 import { adminRoutes } from "./admin.routes";
 import VendorLandingPage from "@/pages/vendor/VendorLandingPage";
+import NotFoundError from "@/components/error/NotFoundError";
 
 export const router = createBrowserRouter([
   ...userRoutes,
   ...vendorRoutes,
   ...adminRoutes,
   { path: "/partner-with-us", element: <VendorLandingPage /> },
+  { path: "*", element: <NotFoundError /> },
 ]);
