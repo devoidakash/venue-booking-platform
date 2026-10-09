@@ -322,10 +322,20 @@ export async function fetchVenueNameAndAddress(venueId) {
 
 export async function expireStaleBookings() {
   const result = await pool.query(`
-    UPDATE bookings
-    SET status = 'expired'
-    WHERE status = 'pending_payment'
-    AND created_at < NOW() - INTERVAL '10 minutes'
+    WITH expired_bookings AS (
+      UPDATE bookings
+      SET status = 'expired'
+      WHERE status = 'pending_payment'
+        AND created_at < NOW() - INTERVAL '10 minutes'
+      RETURNING id
+    ),
+    expired_payments AS (
+      UPDATE payments
+      SET status = 'expired'
+      WHERE status = 'pending'
+        AND booking_id IN (SELECT id FROM expired_bookings)
+    )
+    SELECT COUNT(*)::int AS count FROM expired_bookings
   `);
-  return result.rowCount;
+  return result.rows[0].count;
 }
