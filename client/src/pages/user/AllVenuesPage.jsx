@@ -110,7 +110,7 @@ function VenueCard({ venue, index = 0 }) {
         </p>
 
         <div className="space-y-2">
-          <h3 className="text-[1.8rem] font-bold leading-none tracking-[-0.04em] text-slate-900">
+          <h3 className="text-[1.35rem] font-bold leading-none tracking-[-0.04em] text-slate-900">
             {title}
           </h3>
           <p className="flex items-center gap-2 text-sm text-slate-600">
@@ -185,7 +185,7 @@ function FeaturedHero({ venues }) {
               Daily, Multiple slots
             </p>
 
-            <h2 className="max-w-2xl text-4xl font-black leading-[0.92] tracking-[-0.06em] text-slate-900 sm:text-5xl lg:text-6xl">
+            <h2 className="max-w-2xl text-3xl font-black leading-[0.92] tracking-[-0.06em] text-slate-900 sm:text-4xl lg:text-5xl">
               {title}
             </h2>
 
@@ -257,7 +257,7 @@ function FeaturedHero({ venues }) {
                 <p className="text-lg font-semibold uppercase tracking-widest text-white/80">
                   {toTitle(activeVenue.category)}
                 </p>
-                <h3 className="max-w-[9ch] text-[clamp(2.6rem,4vw,5.2rem)] font-black uppercase leading-[0.8] tracking-[-0.07em] text-white">
+                <h3 className="max-w-[9ch] text-[clamp(2rem,3vw,4rem)] font-black uppercase leading-[0.8] tracking-[-0.07em] text-white">
                   {title}
                 </h3>
               </div>
