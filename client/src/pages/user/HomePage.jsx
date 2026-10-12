@@ -100,7 +100,7 @@ function SiteHeader({ location, onLocationChange }) {
             <span className="inline-flex items-center gap-2">
               <img src={Logo} alt="Venuz" className="h-9 w-9" />
               <span className="text-xl font-bold tracking-tight text-slate-800">
-                Venuez
+                Venuz
               </span>
             </span>
           </a>

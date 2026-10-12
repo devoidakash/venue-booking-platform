@@ -182,7 +182,7 @@ function HeroGallery({ images = [], name }) {
 
 function Fact({ icon: Icon, children }) {
   return (
-    <div className="flex items-center gap-2.5 py-1.5 text-[15px] text-neutral-700">
+    <div className="flex items-center gap-2.5 py-1.5 text-base text-neutral-700">
       <Icon className="h-4.5 w-4.5 shrink-0 text-neutral-400" />
       <span>{children}</span>
     </div>
@@ -201,13 +201,13 @@ function InfoRow({ icon: Icon, title, subtitle, href, accent }) {
       </span>
       <div className="min-w-0 flex-1">
         <p
-          className={`truncate text-[15px] font-medium ${
+          className={`truncate text-base font-medium ${
             accent ? "text-emerald-600" : "text-neutral-900"
           }`}
         >
           {title}
         </p>
-        <p className="truncate text-[13px] text-neutral-500">{subtitle}</p>
+        <p className="truncate text-sm text-neutral-500">{subtitle}</p>
       </div>
       {href && <ChevronRight className="h-4 w-4 shrink-0 text-neutral-400" />}
     </Comp>
@@ -437,20 +437,20 @@ export default function VenueBookingPage({ onBook }) {
         {/* Title */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-[26px] font-semibold tracking-tight text-neutral-900 sm:text-[32px]">
+            <h1 className="text-[28px] font-semibold tracking-tight text-neutral-900 sm:text-[34px]">
               {name}
             </h1>
-            <p className="mt-1 text-[15px] font-medium text-violet-600">
+            <p className="mt-1 text-base font-medium text-violet-600">
               Open daily, {access.toLowerCase()}
             </p>
           </div>
 
           <div className="flex items-center gap-5 pt-1">
             <div className="text-right">
-              <p className="text-[15px] font-semibold text-neutral-900">
+              <p className="text-base font-semibold text-neutral-900">
                 {toTitle(category)}
               </p>
-              <p className="text-[13px] text-neutral-500">
+              <p className="text-sm text-neutral-500">
                 {district}, {state}
               </p>
             </div>
@@ -476,12 +476,12 @@ export default function VenueBookingPage({ onBook }) {
           <div className="space-y-12">
             {/* About */}
             <section>
-              <h2 className="text-xl font-semibold text-neutral-900">
+              <h2 className="text-[22px] font-semibold text-neutral-900">
                 About the venue
               </h2>
 
               <p
-                className={`mt-5 max-w-[66ch] text-[15px] leading-7 text-neutral-600 ${
+                className={`mt-5 max-w-[66ch] text-base leading-7 text-neutral-600 ${
                   expanded ? "" : "line-clamp-3"
                 }`}
               >
@@ -489,7 +489,7 @@ export default function VenueBookingPage({ onBook }) {
               </p>
               <button
                 onClick={() => setExpanded((v) => !v)}
-                className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-neutral-900"
+                className="mt-2 inline-flex items-center gap-1 text-base font-semibold text-neutral-900"
               >
                 {expanded ? "Read less" : "Read more"}
                 <ChevronDown
@@ -502,7 +502,7 @@ export default function VenueBookingPage({ onBook }) {
 
             {/* Things to know */}
             <section>
-              <h2 className="text-xl font-semibold text-neutral-900">
+              <h2 className="text-[22px] font-semibold text-neutral-900">
                 Things to know
               </h2>
               <div className="mt-4 grid gap-x-10 sm:grid-cols-2">
@@ -518,10 +518,12 @@ export default function VenueBookingPage({ onBook }) {
 
             {/* More */}
             <section>
-              <h2 className="text-xl font-semibold text-neutral-900">More</h2>
+              <h2 className="text-[22px] font-semibold text-neutral-900">
+                More
+              </h2>
               <a className="mt-4 flex items-center gap-3 rounded-xl bg-white px-4 py-4 shadow-[0_1px_2px_rgba(16,12,40,.06)] ring-1 ring-black/5 transition hover:shadow-md">
                 <FileText className="h-4.5 w-4.5 text-neutral-500" />
-                <span className="flex-1 text-[15px] font-medium">
+                <span className="flex-1 text-base font-medium">
                   Terms and conditions
                 </span>
                 <ChevronRight className="h-4 w-4 text-neutral-400" />
@@ -534,16 +536,16 @@ export default function VenueBookingPage({ onBook }) {
             <div className="overflow-hidden rounded-2xl bg-white shadow-[0_2px_10px_rgba(16,12,40,.06)] ring-1 ring-black/5">
               <div className="flex items-center justify-between gap-4 p-4">
                 <div>
-                  <p className="text-[13px] text-neutral-500">From</p>
-                  <p className="text-[22px] font-semibold leading-tight text-neutral-900">
+                  <p className="text-sm text-neutral-500">From</p>
+                  <p className="text-2xl font-semibold leading-tight text-neutral-900">
                     {inr(startingPrice)}
                   </p>
-                  <p className="text-[12px] text-neutral-400">(Inc. taxes)</p>
+                  <p className="text-[13px] text-neutral-400">(Inc. taxes)</p>
                 </div>
                 <Button
                   onClick={handleBook}
                   disabled={pricingLoading}
-                  className="h-11 rounded-xl bg-neutral-900 px-6 text-[15px] hover:bg-neutral-800"
+                  className="h-11 rounded-xl bg-neutral-900 px-6 text-base hover:bg-neutral-800"
                 >
                   Book tickets
                 </Button>
@@ -571,10 +573,10 @@ export default function VenueBookingPage({ onBook }) {
       {/* Mobile bar */}
       <div className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-4 border-t border-neutral-200 bg-white px-4 py-3 lg:hidden">
         <div>
-          <p className="text-[18px] font-semibold leading-none text-neutral-900">
+          <p className="text-xl font-semibold leading-none text-neutral-900">
             {inr(startingPrice)}
           </p>
-          <p className="mt-1 text-[12px] text-neutral-500">
+          <p className="mt-1 text-[13px] text-neutral-500">
             Inc. taxes · {hours}
           </p>
         </div>
