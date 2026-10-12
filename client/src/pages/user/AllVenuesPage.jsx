@@ -104,7 +104,7 @@ function VenueCard({ venue, index = 0 }) {
         </div>
       </Link>
 
-      <div className="space-y-3 px-4">
+      <div className="space-y-3 px-4 pb-3">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
           {toTitle(venue.category)}
         </p>

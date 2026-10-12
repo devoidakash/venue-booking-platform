@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   MapPin,
-  Search,
   User,
   Menu,
   Globe2,
@@ -66,6 +65,7 @@ function XIcon(props) {
 
 function SiteHeader({ location, onLocationChange }) {
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
@@ -144,10 +144,6 @@ function SiteHeader({ location, onLocationChange }) {
           </DropdownMenu>
 
           <div className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="icon">
-              <Search className="h-5 w-5 text-violet-600" />
-            </Button>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -169,6 +165,13 @@ function SiteHeader({ location, onLocationChange }) {
                     <DropdownMenuItem asChild>
                       <Link to="/bookings">My bookings</Link>
                     </DropdownMenuItem>
+                    {user.role === "vendor" && (
+                      <DropdownMenuItem
+                        onSelect={() => navigate("/vendor/overview")}
+                      >
+                        Vendor Dashboard
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>Help</DropdownMenuItem>
                     <DropdownMenuSeparator />
