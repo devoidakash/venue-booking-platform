@@ -1,11 +1,37 @@
 import { useEffect, useState } from "react";
-import { ArrowRight, Clock3, MapPin } from "lucide-react";
+import { Clock3, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { getVenues } from "@/api/user.api";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
+const POSTER_THEMES = [
+  {
+    background:
+      "linear-gradient(135deg, #1124c5 0%, #1b4de0 35%, #0b0d2c 100%)",
+    accent: "#facc15",
+    overlay: "rgba(15,23,42,0.18)",
+  },
+  {
+    background:
+      "linear-gradient(135deg, #0d0d0f 0%, #1a1d2b 38%, #3a3a3a 100%)",
+    accent: "#f8fafc",
+    overlay: "rgba(255,255,255,0.06)",
+  },
+  {
+    background:
+      "linear-gradient(135deg, #f6d8e6 0%, #f59e0b 42%, #7c3aed 100%)",
+    accent: "#111827",
+    overlay: "rgba(17,24,39,0.1)",
+  },
+  {
+    background:
+      "linear-gradient(135deg, #5b0f23 0%, #f43f5e 35%, #111827 100%)",
+    accent: "#f5f3ff",
+    overlay: "rgba(255,255,255,0.08)",
+  },
+];
 
 const toTitle = (value = "") =>
   value
@@ -27,59 +53,85 @@ const formatPrice = (value) => {
   return `From ₹${Number(value).toLocaleString("en-IN")}`;
 };
 
-function VenueCard({ venue }) {
+function VenueCard({ venue, index = 0 }) {
+  const theme = POSTER_THEMES[index % POSTER_THEMES.length];
+  const title = venue.name || "Featured venue";
+
   return (
-    <Card className="overflow-hidden border-0 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-lg">
-      <Link to={`/venues/${venue.id}`} className="block overflow-hidden">
-        <img
-          src={venue.coverImage}
-          alt={venue.name}
-          className="aspect-4/3 w-full object-cover transition duration-500 hover:scale-105"
-        />
+    <Card className="group overflow-hidden border-0 bg-white shadow-[0_18px_35px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_24px_45px_rgba(15,23,42,0.12)]">
+      <Link
+        to={`/venues/${venue.id}`}
+        className="block overflow-hidden rounded-[28px]"
+      >
+        <div
+          className="relative aspect-4/5 overflow-hidden p-4 text-white"
+          style={{ background: theme.background }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(circle at top left, ${theme.overlay}, transparent 38%)`,
+            }}
+          />
+
+          {venue.coverImage && (
+            <img
+              src={venue.coverImage}
+              alt={title}
+              className="absolute inset-0 h-full w-full object-cover opacity-80 mix-blend-screen"
+            />
+          )}
+
+          <div className="relative z-10 flex h-full flex-col justify-between">
+            <div className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-[0.18em]">
+              <span className="rounded-full border border-white/30 bg-white/10 px-2 py-1 backdrop-blur-sm">
+                {toTitle(venue.category)}
+              </span>
+              <span
+                className="text-(--poster-accent)"
+                style={{ color: theme.accent }}
+              >
+                {toTitle(venue.bookingType)}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="max-w-[10ch] text-[clamp(2rem,3vw,4rem)] font-black uppercase leading-[0.85] tracking-[-0.06em] text-white">
+                {title}
+              </h2>
+            </div>
+          </div>
+        </div>
       </Link>
 
-      <CardContent className="gap-4 p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-violet-600">
-              {toTitle(venue.category)}
-            </p>
-            <h2 className="truncate text-xl font-semibold text-slate-900">
-              {venue.name}
-            </h2>
-          </div>
-          <p className="shrink-0 text-right text-sm font-semibold text-slate-900">
-            {formatPrice(venue.startingPrice)}
-          </p>
-        </div>
+      <div className="space-y-3 px-4">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+          {toTitle(venue.category)}
+        </p>
 
-        <div className="space-y-2 text-sm text-slate-600">
-          <p className="flex items-center gap-2">
+        <div className="space-y-2">
+          <h3 className="text-[1.8rem] font-bold leading-none tracking-[-0.04em] text-slate-900">
+            {title}
+          </h3>
+          <p className="flex items-center gap-2 text-sm text-slate-600">
             <MapPin className="h-4 w-4 shrink-0 text-violet-600" />
             {venue.district}, {venue.state}
           </p>
-          <p className="flex items-center gap-2">
+          <p className="flex items-center gap-2 text-sm text-slate-600">
             <Clock3 className="h-4 w-4 shrink-0 text-violet-600" />
             {toTime(venue.openingTime)} - {toTime(venue.closingTime)}
           </p>
         </div>
 
-        <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-          <span className="text-sm text-slate-500">
-            {toTitle(venue.bookingType)}
+        <div className="flex items-center justify-between border-t border-slate-100 pt-3">
+          <span className="text-base font-semibold text-slate-900">
+            {formatPrice(venue.startingPrice)}
           </span>
-          <Button
-            asChild
-            variant="ghost"
-            className="gap-2 px-0 text-violet-700 hover:text-violet-800"
-          >
-            <Link to={`/venues/${venue.id}`}>
-              View venue
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
+          <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-violet-700">
+            Book now
+          </span>
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 }
@@ -87,13 +139,14 @@ function VenueCard({ venue }) {
 function VenueSkeleton() {
   return (
     <Card className="overflow-hidden border-0 bg-white">
-      <Skeleton className="aspect-4/3 w-full rounded-none" />
-      <CardContent className="gap-4 p-5">
-        <Skeleton className="h-6 w-2/3" />
-        <Skeleton className="h-4 w-1/2" />
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-9 w-full" />
-      </CardContent>
+      <Skeleton className="aspect-4/5 w-full rounded-none" />
+      <div className="space-y-3 px-4">
+        <Skeleton className="h-4 w-20" />
+        <Skeleton className="h-8 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-8 w-full" />
+      </div>
     </Card>
   );
 }
@@ -144,8 +197,8 @@ export default function AllVenuesPage() {
       )}
 
       {!error && isLoading && (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }, (_, index) => (
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 8 }, (_, index) => (
             <VenueSkeleton key={index} />
           ))}
         </div>
@@ -163,9 +216,9 @@ export default function AllVenuesPage() {
       )}
 
       {!error && !isLoading && venues.length > 0 && (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {venues.map((venue) => (
-            <VenueCard key={venue.id} venue={venue} />
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          {venues.map((venue, index) => (
+            <VenueCard key={venue.id} venue={venue} index={index} />
           ))}
         </div>
       )}
