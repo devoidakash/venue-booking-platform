@@ -94,7 +94,7 @@ function SiteHeader({ location, onLocationChange }) {
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-white">
+      <header className="fixed inset-x-0 top-0 z-50 w-full border-b bg-white">
         <div className="flex h-16 w-full items-center gap-4 px-4 sm:px-6 lg:px-8">
           <a href="/" aria-label="Venuz home" className="shrink-0">
             <span className="inline-flex items-center gap-2">
@@ -297,7 +297,7 @@ export default function HomePage({ children }) {
   const [location, setLocation] = useState(CITIES[0]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f6f5ff]">
+    <div className="flex min-h-screen flex-col bg-[#f6f5ff] pt-16">
       <SiteHeader location={location} onLocationChange={setLocation} />
 
       <main className="flex-1">{children}</main>

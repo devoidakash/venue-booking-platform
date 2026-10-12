@@ -128,3 +128,24 @@
     @apply font-sans;
   }
 }
+
+@keyframes venue-hero-image-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+}
+
+.venue-hero-image {
+  animation: venue-hero-image-in 650ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .venue-hero-image {
+    animation: none;
+  }
+}

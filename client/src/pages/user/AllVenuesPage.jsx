@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Clock3, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock3, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { getVenues } from "@/api/user.api";
@@ -115,7 +115,8 @@ function VenueCard({ venue, index = 0 }) {
           </h3>
           <p className="flex items-center gap-2 text-sm text-slate-600">
             <MapPin className="h-4 w-4 shrink-0 text-violet-600" />
-            {venue.district}, {venue.state}
+            {venue.district || venue.city || "Location"},{" "}
+            {venue.state || "India"}
           </p>
           <p className="flex items-center gap-2 text-sm text-slate-600">
             <Clock3 className="h-4 w-4 shrink-0 text-violet-600" />
@@ -133,6 +134,152 @@ function VenueCard({ venue, index = 0 }) {
         </div>
       </div>
     </Card>
+  );
+}
+
+function FeaturedHero({ venues }) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const featured = venues.slice(0, 5);
+  const activeVenue = featured[activeIndex] || featured[0];
+
+  useEffect(() => {
+    if (
+      featured.length < 2 ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % featured.length);
+    }, 3000);
+
+    return () => window.clearInterval(intervalId);
+  }, [featured.length]);
+
+  if (!activeVenue) return null;
+
+  const theme = POSTER_THEMES[activeIndex % POSTER_THEMES.length];
+  const title = activeVenue.name || "Featured venue";
+  const location = `${activeVenue.district || activeVenue.city || "Location"}, ${activeVenue.state || "India"}`;
+
+  return (
+    <section className="mb-12 p-0">
+      <div className="grid items-center gap-8 lg:grid-cols-[1.7fr_0.9fr]">
+        <div className="relative flex min-h-85 items-center">
+          <button
+            type="button"
+            aria-label="Previous venue"
+            onClick={() =>
+              setActiveIndex((current) =>
+                current === 0 ? featured.length - 1 : current - 1,
+              )
+            }
+            className="absolute -left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 sm:-left-4"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          <div className="ml-8 w-full max-w-175 pr-2 sm:ml-12">
+            <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">
+              Daily, Multiple slots
+            </p>
+
+            <h2 className="max-w-2xl text-4xl font-black leading-[0.92] tracking-[-0.06em] text-slate-900 sm:text-5xl lg:text-6xl">
+              {title}
+            </h2>
+
+            <p className="mt-4 text-xl font-medium text-slate-700 sm:text-2xl">
+              {activeVenue.state || "Haryana"}
+            </p>
+
+            <div className="mt-4 space-y-2 text-base text-slate-600">
+              <p className="font-medium">{location}</p>
+              <p className="text-sm">
+                {formatPrice(activeVenue.startingPrice)}
+              </p>
+            </div>
+
+            <Link
+              to={`/venues/${activeVenue.id}`}
+              className="mt-8 inline-flex items-center justify-center rounded-full bg-slate-950 px-7 py-4 text-base font-semibold text-white shadow-lg shadow-slate-950/20 transition hover:bg-slate-800"
+            >
+              Book tickets
+            </Link>
+          </div>
+        </div>
+
+        <div className="relative flex items-center justify-center">
+          <button
+            type="button"
+            aria-label="Next venue"
+            onClick={() =>
+              setActiveIndex((current) =>
+                current === featured.length - 1 ? 0 : current + 1,
+              )
+            }
+            className="absolute -right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 sm:-right-4"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+
+          <div
+            className="relative aspect-4/5 w-full max-w-105 overflow-hidden rounded-[26px] shadow-[0_28px_60px_rgba(15,23,42,0.18)]"
+            style={{ background: theme.background }}
+          >
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `radial-gradient(circle at top left, ${theme.overlay}, transparent 38%)`,
+              }}
+            />
+
+            {activeVenue.coverImage && (
+              <img
+                key={activeVenue.id || activeIndex}
+                src={activeVenue.coverImage}
+                alt={title}
+                className="venue-hero-image absolute inset-0 h-full w-full object-cover opacity-75 mix-blend-screen"
+              />
+            )}
+
+            <div className="relative z-10 flex h-full flex-col justify-between p-5">
+              <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-[0.18em] text-white/90">
+                <span className="rounded-full border border-white/30 bg-white/10 px-2 py-1 backdrop-blur-sm">
+                  {toTitle(activeVenue.category)}
+                </span>
+                <span style={{ color: theme.accent }}>
+                  {toTitle(activeVenue.bookingType)}
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-lg font-semibold uppercase tracking-widest text-white/80">
+                  {toTitle(activeVenue.category)}
+                </p>
+                <h3 className="max-w-[9ch] text-[clamp(2.6rem,4vw,5.2rem)] font-black uppercase leading-[0.8] tracking-[-0.07em] text-white">
+                  {title}
+                </h3>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-8 flex items-center justify-center gap-3">
+        {featured.map((venue, index) => (
+          <button
+            key={venue.id || index}
+            type="button"
+            aria-label={`Show ${venue.name}`}
+            onClick={() => setActiveIndex(index)}
+            className={`h-2.5 rounded-full transition-all ${
+              index === activeIndex ? "w-10 bg-slate-900" : "w-2.5 bg-slate-300"
+            }`}
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -177,19 +324,6 @@ export default function AllVenuesPage() {
 
   return (
     <section className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
-      <div className="mb-10 max-w-2xl">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-violet-600">
-          Find your place
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-          Venues made for your moments
-        </h1>
-        <p className="mt-4 text-base leading-7 text-slate-600">
-          Browse live venues, compare the essentials, and choose the setting
-          that fits your next event.
-        </p>
-      </div>
-
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
@@ -216,11 +350,20 @@ export default function AllVenuesPage() {
       )}
 
       {!error && !isLoading && venues.length > 0 && (
-        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          {venues.map((venue, index) => (
-            <VenueCard key={venue.id} venue={venue} index={index} />
-          ))}
-        </div>
+        <>
+          <FeaturedHero venues={venues} />
+
+          <div className="mt-10">
+            <h2 className="mb-6 text-3xl font-bold tracking-tight text-slate-900">
+              Explore venues
+            </h2>
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+              {venues.map((venue, index) => (
+                <VenueCard key={venue.id} venue={venue} index={index} />
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </section>
   );
